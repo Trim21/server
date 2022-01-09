@@ -81,6 +81,7 @@ async def startup() -> None:
         pool_recycle=14400,
         pool_size=10,
         max_overflow=20,
+        echo=True,
     )
     app.state.Session = sessionmaker(
         engine, expire_on_commit=False, class_=AsyncSession

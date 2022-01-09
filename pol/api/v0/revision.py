@@ -10,6 +10,7 @@ from pol.router import ErrorCatchRoute
 from pol.depends import get_db
 from pol.db.const import RevisionType
 from pol.db.tables import ChiiMember, ChiiRevText, ChiiRevHistory
+from pol.api.v0.utils import user_avatar
 from pol.api.v0.models import Paged, Pager
 from pol.curd.exceptions import NotFoundError
 from pol.http_cache.depends import CacheControl
@@ -41,6 +42,7 @@ async def get_revisions(
         ChiiRevHistory.rev_edit_summary,
         ChiiMember.username,
         ChiiMember.nickname,
+        ChiiMember.avatar,
     ]
 
     query = (
@@ -63,6 +65,7 @@ async def get_revisions(
             "creator": {
                 "username": r["username"],
                 "nickname": r["nickname"],
+                "avatar": user_avatar(r["avatar"])["small"],
             },
         }
         for r in (await db.execute(query)).mappings().fetchall()
@@ -106,6 +109,7 @@ async def get_revision(
         "creator": {
             "username": user.username,
             "nickname": user.nickname,
+            "avatar": user_avatar(user.avatar)["small"],
         },
     }
 

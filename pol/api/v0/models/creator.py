@@ -6,3 +6,4 @@ class Creator(BaseModel):
 
     username: str
     nickname: str
+    avatar: str

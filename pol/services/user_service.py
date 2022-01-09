@@ -3,29 +3,50 @@ from datetime import datetime
 
 from loguru import logger
 from fastapi import Depends
+from power_cache import TTLCache
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from pol import sa
-from pol.models import User, PublicUser
-from pol.depends import get_db
-from pol.db.tables import ChiiMember, ChiiOauthAccessToken
+from pol.models import User, Permission, PublicUser
+from pol.depends import get_db, get_redis
+from pol.db.tables import ChiiMember, ChiiUserGroup, ChiiOauthAccessToken
 from pol.curd.exceptions import NotFoundError
+from pol.redis.json_cache import JSONRedis
 
 
 class UserNotFound(NotFoundError):
     pass
 
 
+cache: TTLCache[int, Permission] = TTLCache(capacity=15, ttl=60)
+
+
 class UserService:
     _db: AsyncSession
+    _redis: JSONRedis
     NotFoundError = UserNotFound
 
     @classmethod
-    async def new(cls, session: AsyncSession = Depends(get_db)):
-        return cls(session)
+    async def new(
+        cls,
+        session: AsyncSession = Depends(get_db),
+        redis: JSONRedis = Depends(get_redis),
+    ):
+        return cls(session, redis)
 
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, redis: JSONRedis):
         self._db = db
+        self._redis = redis
+
+    async def get_permission(self, group_id: int):
+        """从数据库读取当前的权限规则，在app中缓存60s"""
+        permission = cache.get(group_id)
+        if permission:
+            return permission
+        p: ChiiUserGroup = await self._db.get(ChiiUserGroup, group_id)
+        permission = Permission.parse_obj(p.usr_grp_perm)
+        cache.set(group_id, permission)
+        return permission
 
     async def get_by_name(self, username: str) -> PublicUser:
         """return a public readable user with limited information"""
@@ -69,7 +90,8 @@ class UserService:
             group_id=member.groupid,
             username=member.username,
             nickname=member.nickname,
-            registration_date=member.regdate,
+            registration_time=member.regdate,
             sign=member.sign,
             avatar=member.avatar,
+            permission=await self.get_permission(member.groupid),
         )
