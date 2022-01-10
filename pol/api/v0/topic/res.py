@@ -1,7 +1,7 @@
 import datetime
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import Field, BaseModel
 
 from pol.api.v0.models.creator import Creator
 
@@ -12,7 +12,7 @@ class Topic(BaseModel):
     creator: Creator
     updated_at: datetime.datetime
     created_at: datetime.datetime
-    reply_count: int
+    reply_count: int = Field(default="回复数量，包含二级回复")
 
 
 class BaseReply(BaseModel):

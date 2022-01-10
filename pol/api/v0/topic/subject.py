@@ -62,11 +62,17 @@ async def get_topics(
     response_model=TopicDetail,
 )
 async def get_topic(
+    page: Pager = Depends(),
     topic_id: int = Path(..., gt=0),
     user: Role = Depends(optional_user),
     service: TopicService = Depends(TopicService.new),
     _: Subject = Depends(get_readable_subject),
 ):
+    total = await service.get_topic(
+        TopicType.subject,
+        topic_id,
+        permission=user.permission,
+    )
     data = await service.get_topic(
         TopicType.subject,
         topic_id,
@@ -85,4 +91,5 @@ async def get_topic(
 
     data = data.dict()
     data["replies"] = list(c.values())
+    data["reply_count"] = len(data["replies"])
     return data

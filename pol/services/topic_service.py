@@ -56,6 +56,24 @@ class TopicService:
     def __init__(self, db: AsyncSession):
         self._db = db
 
+    async def count_replies(
+        self, type: TopicType, id: int, permission: Permission
+    ) -> int:
+        if type == TopicType.subject:
+            return await self._count_subject_replies(id, permission)
+        raise ValueError(type)
+
+    async def _count_subject_replies(self, id: int, permission: Permission) -> int:
+        return (
+            await self._db.scalar(
+                sa.select(sa.count(1)).where(
+                    ChiiSubjectPost.sbj_pst_mid == id,
+                    ChiiSubjectPost.sbj_pst_related == 0,
+                ),
+            )
+            - 1
+        )
+
     async def get_topic(
         self, type: TopicType, id: int, permission: Permission
     ) -> TopicDetail:
