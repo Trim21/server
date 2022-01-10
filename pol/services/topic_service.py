@@ -61,8 +61,8 @@ class TopicService:
     ) -> TopicDetail:
         if type == TopicType.subject:
             return await self._get_subject_topic(id, permission)
-        elif type == TopicType.group:
-            return await self._list_group_topics(group_id, limit, offset)
+        # elif type == TopicType.group:
+        #     return await self._list_group_topics(group_id, limit, offset)
         raise ValueError(type)
 
     async def _get_subject_topic(self, id: int, permission: Permission) -> TopicDetail:

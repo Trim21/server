@@ -1031,18 +1031,6 @@ class ChiiSubjectPost(Base):
         uselist=False,
     )
 
-    # replies: List["ChiiSubjectPost"] = relationship(
-    #     "ChiiSubjectPost",
-    #     primaryjoin=lambda: (
-    #         and_(
-    #             foreign(ChiiSubjectPost.sbj_pst_related) == ChiiSubjectPost.sbj_pst_id,
-    #             ChiiSubjectPost.sbj_pst_related == 0,
-    #         )
-    #     ),
-    #     order_by="ChiiSubjectPost.sbj_pst_dateline",
-    #     uselist=True,
-    # )  # type: ignore
-
 
 class PHPSerializedStr(MEDIUMBLOB):
     @staticmethod

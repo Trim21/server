@@ -61,7 +61,7 @@ async def get_topics(
     summary="获取条目讨论帖",
     response_model=TopicDetail,
 )
-async def get_topics(
+async def get_topic(
     topic_id: int = Path(..., gt=0),
     user: Role = Depends(optional_user),
     service: TopicService = Depends(TopicService.new),
