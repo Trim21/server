@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 
 from pydantic import BaseModel
 
-__all__ = ["PublicUser", "User", "Permission", "Creator", "Subject"]
-
 from pol.db.const import SubjectType
+
+__all__ = ["PublicUser", "User", "Permission", "Creator", "Subject", "UserGroup"]
 
 
 class Creator(BaseModel):

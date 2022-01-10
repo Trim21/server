@@ -10,5 +10,5 @@ async def test_redis_util(redis_client: Redis):
     key = "test-key"
     redis_client.set(key, b"bb")
     async with JSONRedis.from_url(config.REDIS_URI) as redis:
-        v = await redis.get("test-key")
+        v = await redis.get_topic("test-key")
         assert v is None

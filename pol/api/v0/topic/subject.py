@@ -1,7 +1,6 @@
-import datetime
+from typing import Dict
 
-from fastapi import Depends, APIRouter
-from pydantic import BaseModel
+from fastapi import Path, Depends, APIRouter
 
 from pol.models import Subject
 from pol.router import ErrorCatchRoute
@@ -9,8 +8,8 @@ from pol.permission import Role
 from pol.api.v0.utils import user_avatar
 from pol.api.v0.models import Paged, Pager
 from pol.api.v0.depends import get_readable_subject
+from pol.api.v0.topic.res import Topic, TopicDetail
 from pol.api.v0.depends.auth import optional_user
-from pol.api.v0.models.creator import Creator
 from pol.services.topic_service import TopicType, TopicService
 
 router = APIRouter(
@@ -18,15 +17,6 @@ router = APIRouter(
     route_class=ErrorCatchRoute,
     redirect_slashes=False,
 )
-
-
-class Topic(BaseModel):
-    id: int
-    title: str
-    creator: Creator
-    updated_at: datetime.datetime
-    created_at: datetime.datetime
-    reply_count: int
 
 
 @router.get(
@@ -40,7 +30,15 @@ async def get_topics(
     service: TopicService = Depends(TopicService.new),
     subject: Subject = Depends(get_readable_subject),
 ):
-    total, data = await service.list(
+    total = await service.count(
+        TopicType.subject,
+        subject.id,
+        permission=user.permission,
+    )
+
+    page.check(total)
+
+    data = await service.list(
         TopicType.subject,
         subject.id,
         limit=page.limit,
@@ -56,3 +54,35 @@ async def get_topics(
         **page.dict(),
         "data": data,
     }
+
+
+@router.get(
+    "/subjects/{subject_id}/topics/{topic_id}",
+    summary="获取条目讨论帖",
+    response_model=TopicDetail,
+)
+async def get_topics(
+    topic_id: int = Path(..., gt=0),
+    user: Role = Depends(optional_user),
+    service: TopicService = Depends(TopicService.new),
+    _: Subject = Depends(get_readable_subject),
+):
+    data = await service.get_topic(
+        TopicType.subject,
+        topic_id,
+        permission=user.permission,
+    )
+
+    for i in data.replies:
+        i.creator.avatar = user_avatar(i.creator.avatar)["large"]
+
+    data.creator.avatar = user_avatar(data.creator.avatar)["large"]
+
+    c: Dict[int, dict] = {x.id: x.dict() for x in data.replies if x.parent == 0}
+    for i in data.replies:
+        if i.parent:
+            c[i.parent]["replies"].append(i.dict())
+
+    data = data.dict()
+    data["replies"] = list(c.values())
+    return data

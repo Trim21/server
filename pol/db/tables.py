@@ -984,13 +984,64 @@ class ChiiSubjectTopic(Base):
     subject: "ChiiSubject" = relationship(
         "ChiiSubject",
         primaryjoin=lambda: (
-            ChiiSubject.subject_id == ChiiSubjectTopic.sbj_tpc_subject_id
+            ChiiSubject.subject_id == foreign(ChiiSubjectTopic.sbj_tpc_subject_id)
         ),
-        remote_side="ChiiSubjectTopic.sbj_tpc_subject_id",
-        foreign_keys="ChiiSubject.subject_id",
         innerjoin=True,
         uselist=False,
     )  # type: ignore
+
+    replies: List["ChiiSubjectPost"] = relationship(
+        "ChiiSubjectPost",
+        primaryjoin=lambda: (
+            foreign(ChiiSubjectPost.sbj_pst_mid) == ChiiSubjectTopic.sbj_tpc_id
+        ),
+        innerjoin=True,
+        uselist=True,
+        back_populates="topic",
+    )  # type: ignore
+
+
+class ChiiSubjectPost(Base):
+    __tablename__ = "chii_subject_posts"
+
+    sbj_pst_id = Column(MEDIUMINT(8), primary_key=True)
+    sbj_pst_mid = Column(MEDIUMINT(8), nullable=False, index=True)
+    sbj_pst_uid = Column(MEDIUMINT(8), nullable=False, index=True)
+    sbj_pst_related = Column(
+        MEDIUMINT(8), nullable=False, index=True, server_default=text("'0'")
+    )
+    sbj_pst_content = Column(MEDIUMTEXT, nullable=False)
+    sbj_pst_state = Column(TINYINT(1), nullable=False)
+    sbj_pst_dateline = Column(INTEGER(10), nullable=False, server_default=text("'0'"))
+
+    topic: "ChiiSubjectTopic" = relationship(
+        "ChiiSubjectTopic",
+        primaryjoin=lambda: (
+            ChiiSubjectTopic.sbj_tpc_id == foreign(ChiiSubjectPost.sbj_pst_mid)
+        ),
+        innerjoin=True,
+        uselist=False,
+        back_populates="replies",
+    )  # type: ignore
+
+    creator: "ChiiMember" = relationship(
+        "ChiiMember",
+        primaryjoin=lambda: (ChiiMember.uid == foreign(ChiiSubjectPost.sbj_pst_uid)),
+        innerjoin=True,
+        uselist=False,
+    )
+
+    # replies: List["ChiiSubjectPost"] = relationship(
+    #     "ChiiSubjectPost",
+    #     primaryjoin=lambda: (
+    #         and_(
+    #             foreign(ChiiSubjectPost.sbj_pst_related) == ChiiSubjectPost.sbj_pst_id,
+    #             ChiiSubjectPost.sbj_pst_related == 0,
+    #         )
+    #     ),
+    #     order_by="ChiiSubjectPost.sbj_pst_dateline",
+    #     uselist=True,
+    # )  # type: ignore
 
 
 class PHPSerializedStr(MEDIUMBLOB):
