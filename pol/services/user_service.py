@@ -22,8 +22,8 @@ cache: TTLCache[int, Permission] = TTLCache(capacity=15, ttl=60)
 
 
 class UserService:
+    __slots__ = ("_db",)
     _db: AsyncSession
-    _redis: JSONRedis
     NotFoundError = UserNotFound
 
     @classmethod
@@ -36,12 +36,10 @@ class UserService:
 
     def __init__(self, db: AsyncSession, redis: JSONRedis):
         self._db = db
-        self._redis = redis
 
     async def get_permission(self, group_id: int):
         """从数据库读取当前的权限规则，在app中缓存60s"""
-        permission = cache.get(group_id)
-        if permission:
+        if permission := cache.get(group_id):
             return permission
         p: ChiiUserGroup = await self._db.get(ChiiUserGroup, group_id)
         permission = Permission.parse_obj(p.usr_grp_perm)

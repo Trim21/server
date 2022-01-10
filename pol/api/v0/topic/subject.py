@@ -3,9 +3,13 @@ import datetime
 from fastapi import Depends, APIRouter
 from pydantic import BaseModel
 
+from pol.models import Subject
 from pol.router import ErrorCatchRoute
+from pol.permission import Role
 from pol.api.v0.utils import user_avatar
 from pol.api.v0.models import Paged, Pager
+from pol.api.v0.depends import get_readable_subject
+from pol.api.v0.depends.auth import optional_user
 from pol.api.v0.models.creator import Creator
 from pol.services.topic_service import TopicType, TopicService
 
@@ -31,12 +35,17 @@ class Topic(BaseModel):
     response_model=Paged[Topic],
 )
 async def get_topics(
-    subject_id: int,
     page: Pager = Depends(),
+    user: Role = Depends(optional_user),
     service: TopicService = Depends(TopicService.new),
+    subject: Subject = Depends(get_readable_subject),
 ):
     total, data = await service.list(
-        TopicType.subject, subject_id, limit=page.limit, offset=page.offset
+        TopicType.subject,
+        subject.id,
+        limit=page.limit,
+        offset=page.offset,
+        permission=user.permission,
     )
 
     for i in data:

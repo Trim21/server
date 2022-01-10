@@ -21,7 +21,7 @@ class TopicStateType(IntEnum):
     column: {tbl}_tpc_state
     """
 
-    none = 0
+    normal = 0
     closed = 1
     reopen = 2
     pin = 3

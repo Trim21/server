@@ -18,6 +18,8 @@ API_KEY_HEADER = HTTPBearer()
 class Guest(Role):
     """this is a guest with only basic permission"""
 
+    permission = None
+
     def allow_nsfw(self) -> bool:
         return False
 

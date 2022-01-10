@@ -5,21 +5,15 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from pol import sa
-from pol.models import Creator
+from pol.models import Creator, UserGroup, Permission
 from pol.depends import get_db
 from pol.db.tables import ChiiSubjectTopic
 from pol.curd.exceptions import NotFoundError
-from pol.models.community import Topic
+from pol.models.community import Topic, TopicDisplayType
 
 
-class UserNotFound(NotFoundError):
+class TopicNotFound(NotFoundError):
     pass
-
-
-class Category(enum.Enum):
-    public = 1
-    logged = 2
-    admin = 3
 
 
 class TopicType(enum.Enum):
@@ -28,8 +22,9 @@ class TopicType(enum.Enum):
 
 
 class TopicService:
+    __slots__ = ("_db",)
     _db: AsyncSession
-    NotFoundError = UserNotFound
+    NotFoundError = TopicNotFound
 
     @classmethod
     async def new(cls, session: AsyncSession = Depends(get_db)):
@@ -47,6 +42,7 @@ class TopicService:
         group_id: int,
         limit: int,
         offset: int,
+        permission: Permission,
     ) -> Tuple[int, List[Topic]]:
         """
         caller should check existence of parent entity (subject, group)
@@ -55,9 +51,10 @@ class TopicService:
         :param offset:
         :param type: group type, `subject` or `group`
         :param group_id: subject_id or group_id.
+        :param permission: user permission rule
         """
         if type == TopicType.subject:
-            return await self._list_subject_topics(group_id, limit, offset)
+            return await self._list_subject_topics(group_id, limit, offset, permission)
         elif type == TopicType.group:
             return await self._list_group_topics(group_id, limit, offset)
         raise ValueError(type)
@@ -67,19 +64,22 @@ class TopicService:
         subject_id: int,
         limit: int,
         offset: int,
+        permission: Permission,
     ) -> Tuple[int, List[Topic]]:
+        where = self._permission(permission)
+
         total = await self._db.scalar(
             sa.select(sa.count(1))
-            .where(ChiiSubjectTopic.sbj_tpc_subject_id == subject_id)
+            .where(ChiiSubjectTopic.sbj_tpc_subject_id == subject_id, *where)
             .options(sa.joinedload(ChiiSubjectTopic.creator))
         )
 
         results: Iterator[ChiiSubjectTopic] = await self._db.scalars(
             sa.select(ChiiSubjectTopic)
-            .where(ChiiSubjectTopic.sbj_tpc_subject_id == subject_id)
+            .where(ChiiSubjectTopic.sbj_tpc_subject_id == subject_id, *where)
             .limit(limit)
             .offset(offset)
-            .order_by(ChiiSubjectTopic.sbj_tpc_lastpost)
+            .order_by(ChiiSubjectTopic.sbj_tpc_lastpost.desc())
             .options(sa.joinedload(ChiiSubjectTopic.creator))
         )
 
@@ -94,6 +94,15 @@ class TopicService:
             )
             for x in results
         ]
+
+    @staticmethod
+    def _permission(p: Permission):
+        default = [ChiiSubjectTopic.sbj_tpc_display == TopicDisplayType.normal]
+        if not p:
+            return default
+        if p.user_group in (UserGroup.bangumi_admin, UserGroup.admin):
+            return []
+        return default
 
     async def _list_group_topics(
         self,

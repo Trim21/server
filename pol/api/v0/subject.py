@@ -56,7 +56,7 @@ async def get_subject(
     cache_control: CacheControl = Depends(CacheControl),
 ):
     """cache and permission wrapper"""
-    cache_key = CACHE_KEY_PREFIX + f"subject:{subject_id}"
+    cache_key = CACHE_KEY_PREFIX + f"res:subject:{subject_id}"
     s = await redis.get_with_model(cache_key, Subject)
     if s:
         response.headers["x-cache-status"] = "hit"
