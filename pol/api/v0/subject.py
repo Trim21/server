@@ -123,7 +123,7 @@ async def _get_subject(
             "dropped": subject.subject_dropped,
         },
         "rating": subject.fields.rating(),
-        "platform": PLATFORM_MAP[subject.subject_type_id].get_topic(
+        "platform": PLATFORM_MAP[subject.subject_type_id].get(
             subject.subject_platform, {"type_cn": ""}
         )["type_cn"],
         "total_episodes": await curd.count(db, ChiiEpisode.ep_subject_id == subject_id),
@@ -249,9 +249,7 @@ async def get_subject_relations(
 
     for r in subject.relations:
         s = r.dst_subject
-        relation = RELATION_MAP[r.rlt_related_subject_type_id].get_topic(
-            r.rlt_relation_type
-        )
+        relation = RELATION_MAP[r.rlt_related_subject_type_id].get(r.rlt_relation_type)
 
         if relation is None or r.rlt_related_subject_type_id == 1:
             rel = SubjectType(r.rlt_related_subject_type_id).str()
