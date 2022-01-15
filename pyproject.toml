@@ -59,7 +59,7 @@ exclude_lines = [
 addopts = '-rav -W error::sqlalchemy.exc.RemovedIn20Warning'
 env = [
   'D:TESTING=true',
-  'SQLALCHEMY_WARN_20=true'
+  'SQLALCHEMY_WARN_20=true',
 ]
 
 [tool.mypy]
