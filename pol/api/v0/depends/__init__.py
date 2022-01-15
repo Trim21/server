@@ -58,3 +58,21 @@ async def get_readable_subject(
         raise not_found
 
     return subject
+
+
+async def get_subject(
+    subject_id: int = Path(..., gt=0),
+    subject_service: SubjectService = Depends(SubjectService.new),
+    user: Role = Depends(optional_user),
+    not_found: res.HTTPException = Depends(res.not_found_exception),
+) -> Subject:
+    """
+    make sure current subject is visible for current user
+    also omit merged subject
+    """
+    try:
+        return await subject_service.get_by_id(
+            subject_id, user.allow_nsfw(), include_redirect=False
+        )
+    except SubjectService.NotFoundError:
+        raise not_found

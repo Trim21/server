@@ -2,8 +2,8 @@ import datetime
 
 from pydantic import BaseModel
 
-from pol.models import Creator
 from pol.db.const import IntEnum
+from pol.models.user import Creator
 
 
 class Topic(BaseModel):

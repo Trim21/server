@@ -2,10 +2,9 @@ from typing import Dict
 
 from fastapi import Path, Depends, APIRouter
 
-from pol.models import Subject
+from pol.models import Avatar, Subject
 from pol.router import ErrorCatchRoute
 from pol.permission import Role
-from pol.api.v0.utils import user_avatar
 from pol.api.v0.models import Paged, Pager
 from pol.api.v0.depends import get_readable_subject
 from pol.api.v0.topic.res import Topic, TopicDetail
@@ -47,7 +46,7 @@ async def get_topics(
     )
 
     for i in data:
-        i.creator.avatar = user_avatar(i.creator.avatar)["large"]
+        i.creator.avatar = Avatar.from_db_record(i.creator.avatar).large
 
     return {
         "total": total,
@@ -62,17 +61,17 @@ async def get_topics(
     response_model=TopicDetail,
 )
 async def get_topic(
-    page: Pager = Depends(),
     topic_id: int = Path(..., gt=0),
     user: Role = Depends(optional_user),
     service: TopicService = Depends(TopicService.new),
     _: Subject = Depends(get_readable_subject),
 ):
-    total = await service.get_topic(
+    await service.get_topic(
         TopicType.subject,
         topic_id,
         permission=user.permission,
     )
+
     data = await service.get_topic(
         TopicType.subject,
         topic_id,
@@ -80,9 +79,9 @@ async def get_topic(
     )
 
     for i in data.replies:
-        i.creator.avatar = user_avatar(i.creator.avatar)["large"]
+        i.creator.avatar = Avatar.from_db_record(i.creator.avatar).large
 
-    data.creator.avatar = user_avatar(data.creator.avatar)["large"]
+    data.creator.avatar = Avatar.from_db_record(data.creator.avatar).large
 
     c: Dict[int, dict] = {x.id: x.dict() for x in data.replies if x.parent == 0}
     for i in data.replies:

@@ -6,10 +6,11 @@ from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from pol import sa
-from pol.models import Creator, UserGroup, Permission
+from pol.db import sa
+from pol.models import UserGroup, Permission
 from pol.depends import get_db
 from pol.db.tables import ChiiSubjectPost, ChiiSubjectTopic
+from pol.models.user import Creator
 from pol.curd.exceptions import NotFoundError
 from pol.models.community import Topic, TopicDisplayType
 
