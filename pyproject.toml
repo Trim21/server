@@ -43,7 +43,7 @@ pytest-github-actions-annotate-failures = "0.1.6"
 pytest-env = "0.6.2"
 redis = { extras = ["hiredis"], version = "4.1.0" }
 flake8-tidy-imports = "4.6.0"
-black = "^21.12b0"
+black = "21.12b0"
 
 [tool.coverage.run]
 concurrency = ['thread', 'greenlet']
@@ -58,7 +58,10 @@ exclude_lines = [
 
 [tool.pytest.ini_options]
 addopts = '-rav -W error::sqlalchemy.exc.RemovedIn20Warning'
-env = ['D:TESTING=true', 'SQLALCHEMY_WARN_20=true']
+env = [
+  'D:TESTING=true',
+  'SQLALCHEMY_WARN_20=true'
+]
 
 [tool.mypy]
 ignore_missing_imports = true

@@ -12,7 +12,7 @@ class Topic(BaseModel):
     creator: Creator
     updated_at: datetime.datetime
     created_at: datetime.datetime
-    reply_count: int = Field(default="回复数量，包含二级回复")
+    reply_count: int = Field(description="回复数量，包含二级回复")
 
 
 class BaseReply(BaseModel):

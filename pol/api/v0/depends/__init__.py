@@ -12,7 +12,7 @@ from pol.services.subject_service import Subject, SubjectService
 
 
 async def get_public_user(
-    username: str,
+    username: str = Path(..., description="设置了 username 后无法使用UID"),
     user_service: UserService = Depends(UserService.new),
     not_found: res.HTTPException = Depends(res.not_found_exception),
 ) -> PublicUser:

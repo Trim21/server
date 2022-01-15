@@ -61,7 +61,9 @@ def app():
 
 
 @pytest.fixture()
-def mock_aioredis():
+def mock_redis():
+    """return a mocked `JSONRedis` client"""
+
     r = mock.Mock()
     r.set_json = mock.AsyncMock()
     r.get = mock.AsyncMock(return_value=None)

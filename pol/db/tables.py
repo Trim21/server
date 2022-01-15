@@ -211,15 +211,6 @@ class ChiiMember(Base):
         back_populates="user",
     )  # type: ignore
 
-    def as_creator(self):
-        return {
-            "id": self.uid,
-            "username": self.username,
-            "nickname": self.nickname,
-            "avatar": self.avatar,
-            "sign": self.sign,
-        }
-
 
 class ChiiOauthAccessToken(Base):
     __tablename__ = "chii_oauth_access_tokens"

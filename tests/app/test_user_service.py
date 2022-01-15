@@ -12,9 +12,7 @@ from pol.services.user_service import UserService
 
 @pytest.mark.env("database")
 @async_test
-async def test_auth_expired_token(
-    mock_user: MockUser, AsyncSessionMaker, mock_aioredis
-):
+async def test_auth_expired_token(mock_user: MockUser, AsyncSessionMaker, mock_redis):
     mock_user(
         access_token="ttt",
         user_id=200,
@@ -23,13 +21,13 @@ async def test_auth_expired_token(
 
     async with AsyncSessionMaker() as db:
         with pytest.raises(UserService.NotFoundError):
-            await UserService(db, mock_aioredis).get_by_access_token("ttt")
+            await UserService(db, mock_redis).get_by_access_token("ttt")
 
 
 @pytest.mark.env("database")
 @async_test
 async def test_auth_missing_user(
-    mock_user: MockUser, db_session: Session, AsyncSessionMaker, mock_aioredis
+    mock_user: MockUser, db_session: Session, AsyncSessionMaker, mock_redis
 ):
     mock_user(
         access_token="ttt",
@@ -41,4 +39,4 @@ async def test_auth_missing_user(
 
     async with AsyncSessionMaker() as db:
         with pytest.raises(UserService.NotFoundError):
-            await UserService(db, mock_aioredis).get_by_access_token("ttt")
+            await UserService(db, mock_redis).get_by_access_token("ttt")

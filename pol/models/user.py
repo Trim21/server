@@ -33,14 +33,9 @@ class UserGroup(enum.IntEnum):
     wiki = 11  # 维基人
 
 
-class PublicUser(BaseModel):
-    id: int
-    username: str
-    nickname: str
-    avatar: Avatar
-
-
 class Permission(BaseModel):
+    """从当前的 chii_usergroup 表中导出的旧主站使用的实际权限列表"""
+
     app_erase: int = 0
     manage_app: int = 0
     user_list: int = 0
@@ -72,6 +67,13 @@ class Permission(BaseModel):
     report: int = 0
     doujin_subject_erase: int = 0
     doujin_subject_lock: int = 0
+
+
+class PublicUser(BaseModel):
+    id: int
+    username: str
+    nickname: str
+    avatar: Avatar
 
 
 class User(BaseModel):
