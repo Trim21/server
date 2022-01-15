@@ -43,7 +43,6 @@ pytest-github-actions-annotate-failures = "0.1.6"
 pytest-env = "0.6.2"
 redis = { extras = ["hiredis"], version = "4.1.0" }
 flake8-tidy-imports = "4.6.0"
-black = "21.12b0"
 
 [tool.coverage.run]
 concurrency = ['thread', 'greenlet']
