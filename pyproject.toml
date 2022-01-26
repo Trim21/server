@@ -17,7 +17,7 @@ authors = [
 ]
 
 [tool.poetry.dependencies]
-python = "3.8.*"
+python = "3.8.* || 3.9.*"
 # dependencies
 fastapi = "0.71.0"
 pydantic = "1.9.0"

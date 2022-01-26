@@ -2,7 +2,7 @@
 
 ## 开发环境
 
-python 版本: 3.8
+python 版本: 3.8 或 3.9
 
 使用 [poetry](https://github.com/python-poetry/poetry) 进行依赖管理。
 
