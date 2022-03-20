@@ -14,30 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>
 
-package util
+package req
 
-import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
-)
-
-func DetailWithError(c *fiber.Ctx, err error) Detail {
-	return Detail{
-		Error:       err.Error(),
-		Path:        c.Path(),
-		QueryString: utils.UnsafeString(c.Request().URI().QueryString()),
-	}
-}
-
-func DetailFromRequest(c *fiber.Ctx) Detail {
-	return Detail{
-		Path:        c.Path(),
-		QueryString: utils.UnsafeString(c.Request().URI().QueryString()),
-	}
-}
-
-type Detail struct {
-	Error       string `json:"error,omitempty"`
-	Path        string `json:"path,omitempty"`
-	QueryString string `json:"query_string,omitempty"`
+type PutSubject struct {
+	Name        string `json:"name"`
+	Infobox     string `json:"infobox"`
+	Summary     string `json:"summary" doc:"条目简介"`
+	EditSummary string `json:"edit_summary" doc:"编辑摘要"`
+	Entry       bool   `json:"entry" doc:"if this subject is main entry for a series"`
+	Platform    uint16 `json:"platform"`
+	NSFW        bool   `json:"nsfw"`
 }

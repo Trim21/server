@@ -117,6 +117,19 @@ func (a *accessor) AllowNSFW() bool {
 	return a.login && a.Auth.AllowNSFW()
 }
 
+func (a *accessor) AllowEditWiki() bool {
+	if !a.login {
+		return false
+	}
+
+	switch a.Auth.ID {
+	case 1, 2, 8, 9, 11:
+		return true
+	}
+
+	return false
+}
+
 func (a accessor) LogField() zap.Field {
 	return zap.Object("request", a)
 }

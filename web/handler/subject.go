@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
 	"go.uber.org/zap"
 
 	"github.com/bangumi/server/compat"
@@ -35,6 +36,7 @@ import (
 	"github.com/bangumi/server/pkg/vars"
 	"github.com/bangumi/server/pkg/wiki"
 	"github.com/bangumi/server/web/handler/cachekey"
+	"github.com/bangumi/server/web/req"
 	"github.com/bangumi/server/web/res"
 	"github.com/bangumi/server/web/util"
 )
@@ -71,6 +73,72 @@ func (h Handler) GetSubject(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(r)
+}
+
+func (h Handler) PutSubject(c *fiber.Ctx) error {
+	u := h.getUser(c)
+	if !u.AllowEditWiki() {
+		return c.Status(http.StatusUnauthorized).JSON(res.Error{Title: "没有维基编辑权限", Details: util.DetailFromRequest(c)})
+	}
+
+	id, err := parseSubjectID(c.Params("id"))
+	if err != nil || id == 0 {
+		return fiber.NewError(http.StatusBadRequest, "bad id: "+c.Params("id"))
+	}
+
+	if !isSandBosSubjectID(id) {
+		return c.Status(fiber.StatusUnauthorized).JSON(res.Error{
+			Title:       utils.StatusMessage(fiber.StatusUnauthorized),
+			Description: "暂时仅允许修改沙盒条目 184017, 309445, 363612，待测试后会开放其他条目",
+			Details:     util.DetailFromRequest(c),
+		})
+	}
+
+	r, ok, err := h.getSubjectWithCache(c.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return c.Status(http.StatusNotFound).JSON(res.Error{Title: "Not Found", Details: util.DetailFromRequest(c)})
+	}
+
+	if r.Locked {
+		return c.Status(http.StatusBadRequest).JSON(res.Error{Title: "条目被锁定", Details: util.DetailFromRequest(c)})
+	}
+
+	if r.Redirect != 0 {
+		return c.Status(http.StatusBadRequest).JSON(res.Error{Title: "条目被重定向", Details: util.DetailFromRequest(c)})
+	}
+
+	var body req.PutSubject
+	if err = c.BodyParser(&body); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(res.Error{
+			Title:   "can't parse request body as json",
+			Details: util.DetailWithError(c, err),
+		})
+	}
+
+	err = h.s.Update(c.Context(), id, model.CoreSubject{
+		Name:        body.Name,
+		Infobox:     body.Infobox,
+		Summary:     body.Summary,
+		EditSummary: body.EditSummary,
+		Entry:       body.Entry,
+		Platform:    body.Platform,
+		NSFW:        body.NSFW,
+	})
+
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(res.Error{
+			Title:   "can't update",
+			Details: util.DetailWithError(c, err),
+		})
+	}
+
+	c.Status(http.StatusNoContent)
+
+	return nil
 }
 
 func (h Handler) getSubjectWithCache(
@@ -344,4 +412,13 @@ func toActors(persons []model.Person) []res.Actor {
 	}
 
 	return actors
+}
+
+func isSandBosSubjectID(id model.SubjectIDType) bool {
+	switch id {
+	case 184017, 309445, 363612: //nolint:gomnd
+		return true
+	}
+
+	return false
 }

@@ -3,6 +3,7 @@ module github.com/bangumi/server
 go 1.17
 
 require (
+	github.com/danielgtaylor/huma v1.2.1
 	github.com/elliotchance/phpserialize v1.3.2
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-redis/redismock/v8 v8.0.6

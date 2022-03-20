@@ -1,14 +1,18 @@
 openapi: 3.0.2
+
 info:
   title: ""
   version: ""
+
+servers:
+  - url: http://127.0.0.1:3000
+
 paths:
   "/v0/subjects/{subject_id}":
     get:
       tags:
         - 条目
       summary: 获取条目
-      description: cache with 300s
       operationId: get_subject_by_id_v0_subjects__subject_id__get
       parameters:
         - required: true
@@ -39,6 +43,54 @@ paths:
                 "$ref": "#/components/schemas/ErrorDetail"
       security:
         - OptionalHTTPBearer: []
+    put:
+      tags:
+        - 条目
+      summary: 编辑条目
+      description: |
+        需要拥有 wiki 编辑权限
+        
+        暂时仅允许编辑沙盒条目 `184017`, `309445`, `363612`
+      operationId: get_subject_by_id_v0_subjects__subject_id__put
+      parameters:
+        - required: true
+          schema:
+            title: Subject ID
+            minimum: 0
+            type: integer
+          name: subject_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutSubject"
+      responses:
+        "204":
+          description: 条目编辑成功
+        "400":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorDetail"
+        "401":
+          description: |-
+            Unauthorized
+            
+            用户没有编辑权限或条目被锁定
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorDetail"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorDetail"
+      security:
+        - HTTPBearer: []
   "/v0/subjects/{subject_id}/persons":
     get:
       tags:
@@ -48,7 +100,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Subject Id
+            title: Subject ID
             minimum: 0
             type: integer
           name: subject_id
@@ -88,8 +140,9 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Subject Id
+            title: Subject ID
             minimum: 0
+            format: uint32
             type: integer
           name: subject_id
           in: path
@@ -128,7 +181,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Subject Id
+            title: Subject ID
             minimum: 0
             type: integer
           name: subject_id
@@ -168,7 +221,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Subject Id
+            title: Subject ID
             minimum: 0
             type: integer
           name: subject_id
@@ -740,7 +793,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Subject Id
+            title: Subject ID
             minimum: 0
             type: integer
           name: subject_id
@@ -1094,7 +1147,7 @@ components:
             - "$ref": "#/components/schemas/PersonImages"
           description: object with some size of images, this object maybe `null`
         subject_id:
-          title: Subject Id
+          title: Subject ID
           type: integer
         subject_name:
           title: Subject Name
@@ -1384,7 +1437,7 @@ components:
           type: integer
           description: 音乐曲目的碟片数
         subject_id:
-          title: Subject Id
+          title: Subject ID
           type: integer
     ErrorDetail:
       title: ErrorDetail
@@ -1743,7 +1796,7 @@ components:
             - "$ref": "#/components/schemas/PersonImages"
           description: object with some size of images, this object maybe `null`
         subject_id:
-          title: Subject Id
+          title: Subject ID
           type: integer
         subject_name:
           title: Subject Name
@@ -2122,7 +2175,7 @@ components:
       type: object
       properties:
         subject_id:
-          title: Subject Id
+          title: Subject ID
           type: integer
         subject_type:
           "$ref": "#/components/schemas/SubjectType"
@@ -2244,6 +2297,44 @@ components:
         relation:
           title: Relation
           type: string
+    PutSubject:
+      additionalProperties: false
+      properties:
+        infobox:
+          type: string
+          default: ""
+        name:
+          type: string
+          default: ""
+        nsfw:
+          type: boolean
+          default: false
+        platform:
+          format: uint8
+          minimum: 0
+          type: integer
+        summary:
+          type: string
+          default: ""
+        entry:
+          description: if this subject is main entry for a series
+          type: boolean
+          default: false
+        edit_summary:
+          description: 编辑摘要
+          type: string
+          default: ""
+      required:
+        - name
+        - name_cn
+        - infobox
+        - summary
+        - entry
+        - platform
+        - nsfw
+        - edit_summary
+      type: object
+
   securitySchemes:
     OptionalHTTPBearer:
       type: http

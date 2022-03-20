@@ -270,3 +270,42 @@ func (_c *SubjectService_GetSubjectRelated_Call) Return(_a0 []model.SubjectInter
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
+
+// Put provides a mock function with given fields: ctx, id, subject
+func (_m *SubjectService) Put(ctx context.Context, id uint32, subject model.CoreSubject) error {
+	ret := _m.Called(ctx, id, subject)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint32, model.CoreSubject) error); ok {
+		r0 = rf(ctx, id, subject)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SubjectService_Put_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Put'
+type SubjectService_Put_Call struct {
+	*mock.Call
+}
+
+// Put is a helper method to define mock.On call
+//  - ctx context.Context
+//  - id uint32
+//  - subject model.CoreSubject
+func (_e *SubjectService_Expecter) Put(ctx interface{}, id interface{}, subject interface{}) *SubjectService_Put_Call {
+	return &SubjectService_Put_Call{Call: _e.mock.On("Put", ctx, id, subject)}
+}
+
+func (_c *SubjectService_Put_Call) Run(run func(ctx context.Context, id uint32, subject model.CoreSubject)) *SubjectService_Put_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uint32), args[2].(model.CoreSubject))
+	})
+	return _c
+}
+
+func (_c *SubjectService_Put_Call) Return(_a0 error) *SubjectService_Put_Call {
+	_c.Call.Return(_a0)
+	return _c
+}

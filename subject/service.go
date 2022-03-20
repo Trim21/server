@@ -18,10 +18,12 @@ package subject
 
 import (
 	"context"
+	"runtime"
 
 	"github.com/bangumi/server/domain"
 	"github.com/bangumi/server/internal/errgo"
 	"github.com/bangumi/server/model"
+	"github.com/bangumi/server/pkg/wiki"
 )
 
 func NewService(s domain.SubjectRepo, p domain.PersonRepo) domain.SubjectService {
@@ -30,6 +32,51 @@ func NewService(s domain.SubjectRepo, p domain.PersonRepo) domain.SubjectService
 
 type service struct {
 	repo domain.SubjectRepo
+}
+
+func (s service) Update(ctx context.Context, id uint32, subject model.CoreSubject) error {
+	old, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return errgo.Wrap(err, "SubjectRepo.Get")
+	}
+
+	w, err := wiki.Parse(subject.Infobox)
+	if err != nil {
+		return errgo.Wrap(err, "wiki")
+	}
+
+	extra := extractFromWiki(old.TypeID, w)
+
+	m := model.Subject{
+		Name:       subject.Name,
+		Summary:    subject.Summary,
+		PlatformID: subject.Platform,
+		NSFW:       subject.NSFW,
+		Infobox:    subject.Infobox,
+
+		Airtime: extra.Airtime,
+		NameCN:  extra.NameCN,
+		Date:    extra.Date,
+
+		ID:            old.ID,
+		Image:         old.Image,
+		CompatRawTags: old.CompatRawTags,
+		OnHold:        old.OnHold,
+		Dropped:       old.Dropped,
+		Volumes:       old.Volumes,
+		Eps:           old.Eps,
+		Wish:          old.Wish,
+		Collect:       old.Collect,
+		Doing:         old.Doing,
+		TypeID:        old.TypeID,
+		Ban:           old.Ban,
+		Rating:        old.Rating,
+		Redirect:      old.Redirect,
+	}
+
+	runtime.KeepAlive(m)
+
+	return nil
 }
 
 func (s service) Get(ctx context.Context, id uint32) (model.Subject, error) {

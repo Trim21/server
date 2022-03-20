@@ -14,30 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>
 
-package util
+package subject
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/bangumi/server/pkg/wiki"
 )
 
-func DetailWithError(c *fiber.Ctx, err error) Detail {
-	return Detail{
-		Error:       err.Error(),
-		Path:        c.Path(),
-		QueryString: utils.UnsafeString(c.Request().URI().QueryString()),
-	}
-}
+func Test_extractDateString(t *testing.T) {
+	t.Parallel()
 
-func DetailFromRequest(c *fiber.Ctx) Detail {
-	return Detail{
-		Path:        c.Path(),
-		QueryString: utils.UnsafeString(c.Request().URI().QueryString()),
-	}
-}
+	s := extractDateString(wiki.Field{Value: "1111-05-08 (v)"})
 
-type Detail struct {
-	Error       string `json:"error,omitempty"`
-	Path        string `json:"path,omitempty"`
-	QueryString string `json:"query_string,omitempty"`
+	assert.Equal(t, "1111-05-08", s)
 }

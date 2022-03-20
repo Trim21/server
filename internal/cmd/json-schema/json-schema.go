@@ -14,30 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>
 
-package util
+// A help script to generate json schema from go struct
+package main
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
+	"fmt"
+	"reflect"
+
+	"github.com/danielgtaylor/huma/schema"
+	"github.com/goccy/go-json"
+	"gopkg.in/yaml.v3"
+
+	"github.com/bangumi/server/web/req"
 )
 
-func DetailWithError(c *fiber.Ctx, err error) Detail {
-	return Detail{
-		Error:       err.Error(),
-		Path:        c.Path(),
-		QueryString: utils.UnsafeString(c.Request().URI().QueryString()),
+func main() {
+	// Then later you can do:
+	s, err := schema.Generate(reflect.TypeOf(req.PutSubject{}))
+	if err != nil {
+		panic(err)
 	}
+
+	fmt.Println(dump(s))
 }
 
-func DetailFromRequest(c *fiber.Ctx) Detail {
-	return Detail{
-		Path:        c.Path(),
-		QueryString: utils.UnsafeString(c.Request().URI().QueryString()),
+func dump(v interface{}) string {
+	jsonRaw, err := json.MarshalNoEscape(v)
+	if err != nil {
+		panic(err)
 	}
-}
 
-type Detail struct {
-	Error       string `json:"error,omitempty"`
-	Path        string `json:"path,omitempty"`
-	QueryString string `json:"query_string,omitempty"`
+	var d interface{}
+	if err := json.Unmarshal(jsonRaw, &d); err != nil {
+		panic(err)
+	}
+
+	yamlRaw, err := yaml.Marshal(d)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(yamlRaw)
 }

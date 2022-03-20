@@ -99,3 +99,13 @@ type Episode struct {
 	Type        int8
 	Disc        uint8
 }
+
+type CoreSubject struct {
+	Name        string
+	Infobox     string
+	Summary     string
+	EditSummary string
+	Entry       bool
+	Platform    uint16
+	NSFW        bool
+}

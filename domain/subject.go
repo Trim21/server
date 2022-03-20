@@ -39,6 +39,7 @@ type SubjectRepo interface {
 type SubjectService interface {
 	// Get return a repository model.
 	Get(ctx context.Context, id uint32) (model.Subject, error)
+	Update(ctx context.Context, id uint32, subject model.CoreSubject) error
 
 	GetPersonRelated(ctx context.Context, personID model.PersonIDType) ([]model.SubjectPersonRelation, error)
 	GetCharacterRelated(ctx context.Context, characterID model.PersonIDType) ([]model.SubjectCharacterRelation, error)
