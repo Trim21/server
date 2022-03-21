@@ -93,25 +93,25 @@ func extractDateString(f wiki.Field) time.Time {
 //nolint:gomnd
 func parseAirtime(s string) uint8 {
 	switch s {
-	case "1", "星期一", "周一", "一":
+	case "1", "一", "周一", "星期一":
 		return 1
 
-	case "2", "星期二", "周二", "二":
+	case "2", "二", "周二", "星期二":
 		return 2
 
-	case "3", "星期三", "周三", "三":
+	case "3", "三", "周三", "星期三":
 		return 3
 
-	case "4", "星期四", "周四", "四":
+	case "4", "四", "周四", "星期四":
 		return 4
 
-	case "5", "星期五", "周五", "五":
+	case "5", "五", "周五", "星期五":
 		return 5
 
-	case "6", "星期六", "周六", "六":
+	case "6", "六", "周六", "星期六":
 		return 6
 
-	case "7", "星期日", "周日", "日":
+	case "7", "日", "周日", "星期日":
 		return 7
 	}
 
