@@ -18,7 +18,6 @@ package subject
 
 import (
 	"context"
-	"runtime"
 
 	"github.com/bangumi/server/domain"
 	"github.com/bangumi/server/internal/errgo"
@@ -57,26 +56,10 @@ func (s service) Update(ctx context.Context, id uint32, subject model.CoreSubjec
 		Airtime: extra.Airtime,
 		NameCN:  extra.NameCN,
 		Date:    extra.Date,
-
-		ID:            old.ID,
-		Image:         old.Image,
-		CompatRawTags: old.CompatRawTags,
-		OnHold:        old.OnHold,
-		Dropped:       old.Dropped,
-		Volumes:       old.Volumes,
-		Eps:           old.Eps,
-		Wish:          old.Wish,
-		Collect:       old.Collect,
-		Doing:         old.Doing,
-		TypeID:        old.TypeID,
-		Ban:           old.Ban,
-		Rating:        old.Rating,
-		Redirect:      old.Redirect,
 	}
 
-	runtime.KeepAlive(m)
-
-	return nil
+	return errgo.Wrap(s.repo.Set(ctx, id, m), "SubjectRepo.Set")
+	// TODO: append revision
 }
 
 func (s service) Get(ctx context.Context, id uint32) (model.Subject, error) {

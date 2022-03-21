@@ -38,7 +38,7 @@ import (
 const headerCFRay = "Cf-Ray"
 const ctxKeyVisitor = "access-user"
 
-func (h Handler) MiddlewareAccessUser() fiber.Handler {
+func MiddlewareAccessUser(h Handler) fiber.Handler {
 	pool := sync.Pool{New: func() interface{} { return &accessor{} }}
 
 	return func(ctx *fiber.Ctx) error {
@@ -122,7 +122,7 @@ func (a *accessor) AllowEditWiki() bool {
 		return false
 	}
 
-	switch a.Auth.ID {
+	switch a.Auth.Group {
 	case 1, 2, 8, 9, 11:
 		return true
 	}

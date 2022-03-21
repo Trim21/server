@@ -17,7 +17,9 @@
 package handler_test
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,6 +34,7 @@ import (
 	"github.com/bangumi/server/internal/test"
 	"github.com/bangumi/server/mocks"
 	"github.com/bangumi/server/model"
+	"github.com/bangumi/server/web/req"
 	"github.com/bangumi/server/web/res"
 )
 
@@ -149,4 +152,47 @@ func Test_web_subject_bad_id(t *testing.T) {
 			require.Equal(t, http.StatusBadRequest, resp.StatusCode, "400 for redirect subject id")
 		})
 	}
+}
+
+func TestHandler_PutSubject(t *testing.T) {
+	t.Parallel()
+	m := &mocks.SubjectRepo{}
+	defer m.AssertExpectations(t)
+
+	user := &mocks.AuthRepo{}
+	user.EXPECT().GetByToken(mock.Anything, mock.Anything).Return(domain.Auth{
+		RegTime: time.Time{},
+		ID:      1,
+		Group:   1,
+	}, nil)
+
+	m.EXPECT().Set(mock.Anything, uint32(363612), mock.Anything).Return(nil)
+	m.EXPECT().Get(mock.Anything, uint32(363612)).Return(model.Subject{}, nil)
+	app := test.GetWebApp(t, test.Mock{SubjectRepo: m, AuthRepo: user})
+
+	var b = bytes.NewBuffer(nil)
+	err := json.NewEncoder(b).Encode(req.PutSubject{
+		Name: "n",
+		Infobox: `
+{{Infobox
+|a=1
+|开始=2020-10-03
+}}`,
+		Summary:     "summary",
+		EditSummary: "commit message",
+		Platform:    2,
+	})
+	require.NoError(t, err)
+
+	request := httptest.NewRequest(http.MethodPut, "/v0/subjects/363612", b)
+	request.Header.Set(fiber.HeaderAuthorization, "Bearer 1")
+
+	resp, err := app.Test(request)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.Equal(t, http.StatusNoContent, resp.StatusCode, string(body))
 }

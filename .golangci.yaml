@@ -234,6 +234,7 @@ linters-settings:
       - errors.New(
       - errors.Unwrap(
       - .Wrapf(
+      - "func go.uber.org/multierr.Append(left error, right error) error"
       - "errgo.Msg(err error, msg string) error"
       - "errgo.Wrap(err error, msg string) error"
       - "func (*github.com/gofiber/fiber/v2.Ctx).Send"

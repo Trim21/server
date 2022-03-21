@@ -18,9 +18,11 @@ package subject
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/bangumi/server/config"
 	"github.com/bangumi/server/pkg/wiki"
 )
 
@@ -29,5 +31,5 @@ func Test_extractDateString(t *testing.T) {
 
 	s := extractDateString(wiki.Field{Value: "1111-05-08 (v)"})
 
-	assert.Equal(t, "1111-05-08", s)
+	assert.Equal(t, time.Date(1111, 5, 8, 0, 0, 0, 0, config.TZ), s)
 }

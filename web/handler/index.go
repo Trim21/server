@@ -175,7 +175,7 @@ func (h Handler) getIndexSubjects(
 	for i, s := range subjects {
 		data[i] = res.SlimSubjectV0{
 			AddedAt: s.AddedAt,
-			Date:    nilString(s.Subject.Date),
+			Date:    s.Subject.DateString(),
 			Image:   model.SubjectImage(s.Subject.Image),
 			Name:    s.Subject.Name,
 			NameCN:  s.Subject.NameCN,

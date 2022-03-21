@@ -18,14 +18,17 @@ package subject
 
 import (
 	"regexp"
+	"strconv"
+	"time"
 
+	"github.com/bangumi/server/config"
 	"github.com/bangumi/server/model"
 	"github.com/bangumi/server/pkg/wiki"
 )
 
 type extractedWikiData struct {
+	Date    time.Time
 	NameCN  string
-	Date    string
 	Airtime uint8
 }
 
@@ -69,11 +72,38 @@ func extractAnimeWiki(w wiki.Wiki) extractedWikiData {
 
 var datePattern = regexp.MustCompile(`^(\d{4})-(\d{2})-(\d{2})`)
 
-func extractDateString(f wiki.Field) string {
+func extractDateString(f wiki.Field) time.Time {
 	var raw = f.Value
 	if f.Array {
 		raw = f.Values[0].Value
 	}
 
-	return datePattern.FindString(raw)
+	p := datePattern.FindStringSubmatch(raw)
+	if len(p) == 0 {
+		return time.Time{}
+	}
+
+	year, err := strconv.Atoi(p[1])
+	if err != nil {
+		return time.Time{}
+	}
+
+	month, err := strconv.Atoi(p[2])
+	if err != nil {
+		return time.Time{}
+	}
+	if month == 0 {
+		month = 1
+	}
+
+	day, err := strconv.Atoi(p[3])
+	if err != nil {
+		return time.Time{}
+	}
+
+	if day == 0 {
+		day = 1
+	}
+
+	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, config.TZ)
 }

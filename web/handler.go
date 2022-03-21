@@ -18,7 +18,7 @@
 package web
 
 import (
-	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
@@ -31,51 +31,59 @@ import (
 
 // ResistRouter add all router and default 404 Handler to app.
 func ResistRouter(app *fiber.App, h handler.Handler, scope tally.Scope) {
-	app.Use(h.MiddlewareAccessUser())
+	app.Use(handler.MiddlewareAccessUser(h))
 
-	// add logger wrapper and metrics counter
-	addMetrics := func(handler fiber.Handler, method string) fiber.Handler {
-		reqCounter := scope.
-			Tagged(map[string]string{
-				"handler": utils.FunctionName(handler),
-				"method":  method,
-			}).
-			Counter("request_count")
+	app.Get("/v0/subjects/:id", h.GetSubject)
+	app.Put("/v0/subjects/:id", h.PutSubject)
+	app.Get("/v0/subjects/:id/persons", h.GetSubjectRelatedPersons)
+	app.Get("/v0/subjects/:id/subjects", h.GetSubjectRelatedSubjects)
+	app.Get("/v0/subjects/:id/characters", h.GetSubjectRelatedCharacters)
+	app.Get("/v0/persons/:id", h.GetPerson)
+	app.Get("/v0/persons/:id/subjects", h.GetPersonRelatedSubjects)
+	app.Get("/v0/persons/:id/characters", h.GetPersonRelatedCharacters)
+	app.Get("/v0/characters/:id", h.GetCharacter)
+	app.Get("/v0/characters/:id/subjects", h.GetCharacterRelatedSubjects)
+	app.Get("/v0/characters/:id/persons", h.GetCharacterRelatedPersons)
+	app.Get("/v0/episodes/:id", h.GetEpisode)
+	app.Get("/v0/episodes", h.ListEpisode)
+	app.Get("/v0/me", h.GetCurrentUser)
+	app.Get("/v0/users/:username/collections", h.ListCollection)
+	app.Get("/v0/indices/:id", h.GetIndex)
+	app.Get("/v0/indices/:id/subjects", h.GetIndexSubjects)
 
-		return func(ctx *fiber.Ctx) error {
-			reqCounter.Inc(1)
-			return handler(ctx)
+	app.Get("/v0/revisions/persons/:id", h.GetPersonRevision)
+	app.Get("/v0/revisions/persons", h.ListPersonRevision)
+
+	// 给所有的 path 添加 metrics.
+	for _, routes := range app.Stack() {
+		for i, r := range routes {
+			realHandler := r.Handlers[len(r.Handlers)-1]
+			if !strings.HasPrefix(utils.FunctionName(realHandler), "github.com/bangumi/server/web/handler.Handler.") {
+				continue
+			}
+
+			handlers := make([]fiber.Handler, len(r.Handlers)+1)
+			for j := 0; j < len(r.Handlers)-1; j++ {
+				handlers[j] = r.Handlers[j]
+			}
+
+			reqCounter := scope.Tagged(map[string]string{"path": r.Path, "method": r.Method}).Counter("request_count")
+			handlers[len(handlers)-2] = func(c *fiber.Ctx) error {
+				reqCounter.Inc(1)
+				return c.Next()
+			}
+
+			handlers[len(handlers)-1] = realHandler
+			routes[i].Handlers = handlers
 		}
 	}
-
-	app.Get("/v0/subjects/:id", addMetrics(h.GetSubject, http.MethodGet))
-	app.Put("/v0/subjects/:id", addMetrics(h.PutSubject, http.MethodPut))
-	app.Get("/v0/subjects/:id/persons", addMetrics(h.GetSubjectRelatedPersons, http.MethodGet))
-	app.Get("/v0/subjects/:id/subjects", addMetrics(h.GetSubjectRelatedSubjects, http.MethodGet))
-	app.Get("/v0/subjects/:id/characters", addMetrics(h.GetSubjectRelatedCharacters, http.MethodGet))
-	app.Get("/v0/persons/:id", addMetrics(h.GetPerson, http.MethodGet))
-	app.Get("/v0/persons/:id/subjects", addMetrics(h.GetPersonRelatedSubjects, http.MethodGet))
-	app.Get("/v0/persons/:id/characters", addMetrics(h.GetPersonRelatedCharacters, http.MethodGet))
-	app.Get("/v0/characters/:id", addMetrics(h.GetCharacter, http.MethodGet))
-	app.Get("/v0/characters/:id/subjects", addMetrics(h.GetCharacterRelatedSubjects, http.MethodGet))
-	app.Get("/v0/characters/:id/persons", addMetrics(h.GetCharacterRelatedPersons, http.MethodGet))
-	app.Get("/v0/episodes/:id", addMetrics(h.GetEpisode, http.MethodGet))
-	app.Get("/v0/episodes", addMetrics(h.ListEpisode, http.MethodGet))
-	app.Get("/v0/me", addMetrics(h.GetCurrentUser, http.MethodGet))
-	app.Get("/v0/users/:username/collections", addMetrics(h.ListCollection, http.MethodGet))
-	app.Get("/v0/indices/:id", addMetrics(h.GetIndex, http.MethodGet))
-	app.Get("/v0/indices/:id/subjects", addMetrics(h.GetIndexSubjects, http.MethodGet))
-
-	app.Get("/v0/revisions/persons/:id", addMetrics(h.GetPersonRevision))
-	app.Get("/v0/revisions/persons", addMetrics(h.ListPersonRevision))
 
 	// default 404 Handler, all router should be added before this router
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(res.Error{
-			Title: "Not Found",
-			Description: "This is default response, " +
-				"if you see this response, please check your request path",
-			Details: util.DetailFromRequest(c),
+			Title:       "Not Found",
+			Description: "This is default response, if you see this response, please check your request path",
+			Details:     util.DetailFromRequest(c),
 		})
 	})
 }

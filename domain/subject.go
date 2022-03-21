@@ -27,6 +27,8 @@ type SubjectRepo interface {
 	Get(ctx context.Context, id uint32) (model.Subject, error)
 	GetByIDs(ctx context.Context, ids ...model.SubjectIDType) (map[model.SubjectIDType]model.Subject, error)
 
+	Set(ctx context.Context, id uint32, s model.Subject) error
+
 	GetPersonRelated(ctx context.Context, personID model.PersonIDType) ([]SubjectPersonRelation, error)
 	GetCharacterRelated(ctx context.Context, characterID model.PersonIDType) ([]SubjectCharacterRelation, error)
 	GetSubjectRelated(ctx context.Context, subjectID model.SubjectIDType) ([]SubjectInternalRelation, error)

@@ -20,12 +20,15 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 
 	"github.com/bangumi/server/internal/logger"
 )
+
+var TZ = time.FixedZone("Asia/Shanghai", 3600*8) //nolint:gochecknoglobals
 
 func NewAppConfig() AppConfig {
 	logger.Info("reading app config", zap.String("version", Version))

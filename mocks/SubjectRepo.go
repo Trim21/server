@@ -332,3 +332,42 @@ func (_c *SubjectRepo_GetSubjectRelated_Call) Return(_a0 []domain.SubjectInterna
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
+
+// Set provides a mock function with given fields: ctx, id, s
+func (_m *SubjectRepo) Set(ctx context.Context, id uint32, s model.Subject) error {
+	ret := _m.Called(ctx, id, s)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint32, model.Subject) error); ok {
+		r0 = rf(ctx, id, s)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SubjectRepo_Set_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Set'
+type SubjectRepo_Set_Call struct {
+	*mock.Call
+}
+
+// Set is a helper method to define mock.On call
+//  - ctx context.Context
+//  - id uint32
+//  - s model.Subject
+func (_e *SubjectRepo_Expecter) Set(ctx interface{}, id interface{}, s interface{}) *SubjectRepo_Set_Call {
+	return &SubjectRepo_Set_Call{Call: _e.mock.On("Set", ctx, id, s)}
+}
+
+func (_c *SubjectRepo_Set_Call) Run(run func(ctx context.Context, id uint32, s model.Subject)) *SubjectRepo_Set_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uint32), args[2].(model.Subject))
+	})
+	return _c
+}
+
+func (_c *SubjectRepo_Set_Call) Return(_a0 error) *SubjectRepo_Set_Call {
+	_c.Call.Return(_a0)
+	return _c
+}

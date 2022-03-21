@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 	"go.uber.org/zap"
@@ -102,17 +103,15 @@ func (h Handler) PutSubject(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(http.StatusNotFound).JSON(res.Error{Title: "Not Found", Details: util.DetailFromRequest(c)})
 	}
-
 	if r.Locked {
 		return c.Status(http.StatusBadRequest).JSON(res.Error{Title: "条目被锁定", Details: util.DetailFromRequest(c)})
 	}
-
 	if r.Redirect != 0 {
 		return c.Status(http.StatusBadRequest).JSON(res.Error{Title: "条目被重定向", Details: util.DetailFromRequest(c)})
 	}
 
 	var body req.PutSubject
-	if err = c.BodyParser(&body); err != nil {
+	if err = json.NewEncoder(c).Encode(&body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(res.Error{
 			Title:   "can't parse request body as json",
 			Details: util.DetailWithError(c, err),
@@ -130,8 +129,15 @@ func (h Handler) PutSubject(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
+		if errors.Is(err, wiki.ErrWikiSyntax) {
+			return c.Status(http.StatusBadRequest).JSON(res.Error{
+				Title:   "wiki 语法错误",
+				Details: util.Detail{Error: err.Error()},
+			})
+		}
+
 		return c.Status(http.StatusInternalServerError).JSON(res.Error{
-			Title:   "can't update",
+			Title:   "can't modify subject",
 			Details: util.DetailWithError(c, err),
 		})
 	}
@@ -243,11 +249,6 @@ func convertModelSubject(s model.Subject) res.SubjectV0 {
 		logger.Warn("failed to parse tags", zap.Uint32("subject_id", s.ID))
 	}
 
-	var date *string
-	if s.Date != "" {
-		date = &s.Date
-	}
-
 	return res.SubjectV0{
 		ID:       s.ID,
 		Image:    model.SubjectImage(s.Image),
@@ -255,7 +256,7 @@ func convertModelSubject(s model.Subject) res.SubjectV0 {
 		Name:     s.Name,
 		Platform: platformString(s),
 		NameCN:   s.NameCN,
-		Date:     date,
+		Date:     s.DateString(),
 		Infobox:  compat.V0Wiki(wiki.ParseOmitError(s.Infobox).NonZero()),
 		Volumes:  s.Volumes,
 		Redirect: s.Redirect,

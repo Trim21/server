@@ -14,33 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>
 
-package domain
+package model_test
 
 import (
-	"context"
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/bangumi/server/config"
+	"github.com/bangumi/server/model"
 )
 
-// AuthRepo presents an authorization.
-type AuthRepo interface {
-	// GetByToken return an authorized user by a valid access token.
-	GetByToken(ctx context.Context, token string) (Auth, error)
-}
+func TestSubject_DateString(t *testing.T) {
+	t.Parallel()
 
-// Auth is the basic authorization represent a user.
-type Auth struct {
-	RegTime time.Time
-	ID      uint32
-	Group   uint8
-}
+	assert.Equal(t, (*string)(nil), model.Subject{}.DateString())
 
-const nsfwThreshold = -time.Hour * 24 * 60
-
-// AllowNSFW return if current user is allowed to see NSFW resource.
-func (u Auth) AllowNSFW() bool {
-	if u.ID == 0 {
-		return false
+	s := model.Subject{
+		Date: time.Date(2005, 9, 1, 0, 0, 0, 0, config.TZ),
 	}
 
-	return u.RegTime.Add(nsfwThreshold).Before(time.Now())
+	assert.Equal(t, "2005-09-01", *(s.DateString()))
 }

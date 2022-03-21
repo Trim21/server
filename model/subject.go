@@ -16,13 +16,15 @@
 
 package model
 
+import "time"
+
 const subjectLocked = 2
 
 type Subject struct {
 	Image         string
 	Summary       string
 	Name          string
-	Date          string // first release date
+	Date          time.Time // first release date
 	NameCN        string
 	Infobox       string
 	CompatRawTags []byte // compat field for old tags
@@ -45,6 +47,16 @@ type Subject struct {
 
 func (s Subject) Locked() bool {
 	return s.Ban == subjectLocked
+}
+
+func (s Subject) DateString() *string {
+	if s.Date.IsZero() {
+		return nil
+	}
+
+	var date = s.Date.Format("2006-01-02")
+
+	return &date
 }
 
 type Count struct {

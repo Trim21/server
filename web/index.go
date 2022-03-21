@@ -18,6 +18,7 @@ package web
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"net"
 	"strconv"
@@ -26,7 +27,6 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/utils"
 	"github.com/uber-go/tally/v4"
 	promreporter "github.com/uber-go/tally/v4/prometheus"
@@ -43,13 +43,21 @@ import (
 	"github.com/bangumi/server/web/util"
 )
 
+//go:embed index.html
+var swaggerUI []byte
+
+//go:embed spec.yaml
+var swaggerYAML []byte
+
 func New(scope tally.Scope, reporter promreporter.Reporter) *fiber.App {
 	app := fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-		StrictRouting:         true,
-		CaseSensitive:         true,
-		ErrorHandler:          getDefaultErrorHandler(),
-		JSONEncoder:           json.MarshalNoEscape,
+		DisableStartupMessage:     true,
+		DisableDefaultDate:        true,
+		DisableDefaultContentType: true,
+		StrictRouting:             true,
+		CaseSensitive:             true,
+		ErrorHandler:              getDefaultErrorHandler(),
+		JSONEncoder:               json.MarshalNoEscape,
 	})
 
 	histogram := scope.Histogram("response_time", metrics.ResponseTimeBucket())
@@ -67,8 +75,14 @@ func New(scope tally.Scope, reporter promreporter.Reporter) *fiber.App {
 	})
 
 	app.Use(recovery.New())
-	app.Use(cors.New(cors.Config{AllowOrigins: "*", AllowCredentials: true}))
 	app.Get("/metrics", adaptor.HTTPHandler(reporter.HTTPHandler()))
+	app.Get("/", func(ctx *fiber.Ctx) error {
+		return ctx.Type("html").Send(swaggerUI)
+	})
+
+	app.Get("/openapi.yaml", func(ctx *fiber.Ctx) error {
+		return ctx.Type("yaml").Send(swaggerYAML)
+	})
 
 	return app
 }

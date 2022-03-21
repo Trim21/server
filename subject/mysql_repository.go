@@ -21,6 +21,7 @@ import (
 	"errors"
 	"math"
 
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -55,15 +56,37 @@ func (r mysqlRepo) Get(ctx context.Context, id uint32) (model.Subject, error) {
 	return ConvertDao(s), nil
 }
 
-func ConvertDao(s *dao.Subject) model.Subject {
-	var date string
-	if !s.Fields.Date.IsZero() {
-		date = s.Fields.Date.Format("2006-01-02")
+func (r mysqlRepo) Set(ctx context.Context, id uint32, s model.Subject) error {
+	tx := r.q.Begin()
+
+	_, err := tx.Subject.WithContext(ctx).Debug().Where(r.q.Subject.ID.Eq(id)).UpdateSimple(
+		r.q.Subject.Infobox.Value(s.Infobox),
+		r.q.Subject.Name.Value(s.Name),
+		r.q.Subject.NameCN.Value(s.NameCN),
+		r.q.Subject.Airtime.Value(s.Airtime),
+		r.q.Subject.Platform.Value(s.PlatformID),
+		r.q.Subject.Nsfw.Value(s.NSFW),
+	)
+	if err != nil {
+		r.log.Error("unexpected error happened when updating subject", zap.Error(err), zap.Uint32("subject_id", id))
+		return multierr.Append(errgo.Wrap(tx.Rollback(), "tx.Rollback"), errgo.Wrap(err, "update subject table"))
 	}
 
+	_, err = tx.SubjectField.WithContext(ctx).Debug().Where(r.q.SubjectField.Sid.Eq(id)).UpdateSimple(
+		r.q.SubjectField.Date.Value(s.Date),
+	)
+	if err != nil {
+		r.log.Error("unexpected error happened when updating subject fields", zap.Error(err), zap.Uint32("subject_id", id))
+		return multierr.Append(errgo.Wrap(tx.Rollback(), "tx.Rollback"), errgo.Wrap(err, "update subject table"))
+	}
+
+	return errgo.Wrap(tx.Commit(), "tx.Commit")
+}
+
+func ConvertDao(s *dao.Subject) model.Subject {
 	return model.Subject{
 		Redirect:      s.Fields.Redirect,
-		Date:          date,
+		Date:          s.Fields.Date,
 		ID:            s.ID,
 		Name:          s.Name,
 		NameCN:        s.NameCN,

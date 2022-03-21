@@ -45,7 +45,7 @@ func dump(v interface{}) string {
 	}
 
 	var d interface{}
-	if err := json.Unmarshal(jsonRaw, &d); err != nil {
+	if err = json.Unmarshal(jsonRaw, &d); err != nil {
 		panic(err)
 	}
 
