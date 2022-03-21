@@ -118,7 +118,11 @@ func (h Handler) PutSubject(c *fiber.Ctx) error {
 		})
 	}
 
-	err = h.s.Update(c.Context(), id, model.CoreSubject{
+	return h.putSubject(c, id, body)
+}
+
+func (h Handler) putSubject(c *fiber.Ctx, id model.SubjectIDType, body req.PutSubject) error {
+	err := h.s.Update(c.Context(), id, model.CoreSubject{
 		Name:        body.Name,
 		Infobox:     body.Infobox,
 		Summary:     body.Summary,

@@ -74,6 +74,7 @@ func (r mysqlRepo) Set(ctx context.Context, id uint32, s model.Subject) error {
 
 	_, err = tx.SubjectField.WithContext(ctx).Debug().Where(r.q.SubjectField.Sid.Eq(id)).UpdateSimple(
 		r.q.SubjectField.Date.Value(s.Date),
+		r.q.SubjectField.Airtime.Value(s.Airtime),
 	)
 	if err != nil {
 		r.log.Error("unexpected error happened when updating subject fields", zap.Error(err), zap.Uint32("subject_id", id))

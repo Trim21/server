@@ -118,12 +118,13 @@ func (a *accessor) AllowNSFW() bool {
 }
 
 func (a *accessor) AllowEditWiki() bool {
+	// TODO: rewrite with a permission manager.
 	if !a.login {
 		return false
 	}
 
 	switch a.Auth.Group {
-	case 1, 2, 8, 9, 11:
+	case 1, 2, 8, 9, 11: //nolint:gomnd
 		return true
 	}
 

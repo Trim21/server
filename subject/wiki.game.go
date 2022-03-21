@@ -14,46 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>
 
-// A help script to generate json schema from go struct
-//nolint:forbidigo
-package main
+package subject
 
-import (
-	"fmt"
-	"reflect"
+import "github.com/bangumi/server/pkg/wiki"
 
-	"github.com/danielgtaylor/huma/schema"
-	"github.com/goccy/go-json"
-	"gopkg.in/yaml.v3"
+func extractGameWiki(w wiki.Wiki) extractedWikiData {
+	var e extractedWikiData
+	for _, field := range w.Fields {
+		if field.Null {
+			continue
+		}
 
-	"github.com/bangumi/server/web/req"
-)
+		switch field.Key {
+		case cnNameKey:
+			e.NameCN = field.Value
 
-func main() {
-	// Then later you can do:
-	s, err := schema.Generate(reflect.TypeOf(req.PutSubject{}))
-	if err != nil {
-		panic(err)
+		case keyStart:
+			e.Date = extractDateString(field)
+		}
 	}
 
-	fmt.Println(dump(s))
-}
-
-func dump(v interface{}) string {
-	jsonRaw, err := json.MarshalNoEscape(v)
-	if err != nil {
-		panic(err)
-	}
-
-	var d interface{}
-	if err = json.Unmarshal(jsonRaw, &d); err != nil {
-		panic(err)
-	}
-
-	yamlRaw, err := yaml.Marshal(d)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(yamlRaw)
+	return e
 }

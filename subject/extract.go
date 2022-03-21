@@ -38,37 +38,19 @@ func extractFromWiki(t model.SubjectType, w wiki.Wiki) extractedWikiData {
 		return extractAnimeWiki(w)
 	case model.SubjectReal:
 		return extractRealWiki(w)
-
+	case model.SubjectMusic:
+		return extractMusicWiki(w)
+	case model.SubjectGame:
+		return extractGameWiki(w)
+	case model.SubjectBook:
+		return extractBookWiki(w)
 	}
 
 	return extractedWikiData{}
 }
 
-func extractRealWiki(w wiki.Wiki) extractedWikiData {
-	var e extractedWikiData
-
-	return e
-}
-
-func extractAnimeWiki(w wiki.Wiki) extractedWikiData {
-	var e extractedWikiData
-	for _, field := range w.Fields {
-		if field.Null {
-			continue
-		}
-
-		switch field.Key {
-		case "中文名":
-			e.NameCN = field.Value
-
-		case "开始", "放送开始":
-			e.Date = extractDateString(field)
-		}
-
-	}
-
-	return e
-}
+const cnNameKey = "中文名"
+const keyStart = "开始"
 
 var datePattern = regexp.MustCompile(`^(\d{4})-(\d{2})-(\d{2})`)
 
@@ -106,4 +88,32 @@ func extractDateString(f wiki.Field) time.Time {
 	}
 
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, config.TZ)
+}
+
+//nolint:gomnd
+func parseAirtime(s string) uint8 {
+	switch s {
+	case "1", "星期一", "周一", "一":
+		return 1
+
+	case "2", "星期二", "周二", "二":
+		return 2
+
+	case "3", "星期三", "周三", "三":
+		return 3
+
+	case "4", "星期四", "周四", "四":
+		return 4
+
+	case "5", "星期五", "周五", "五":
+		return 5
+
+	case "6", "星期六", "周六", "六":
+		return 6
+
+	case "7", "星期日", "周日", "日":
+		return 7
+	}
+
+	return 0
 }
