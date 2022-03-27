@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Sociosarbis <136657577@qq.com>
 // Copyright (c) 2022 Trim21 <trim21.me@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -20,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"time"
 
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -56,9 +58,21 @@ func (r mysqlRepo) Get(ctx context.Context, id uint32) (model.Subject, error) {
 	return ConvertDao(s), nil
 }
 
-func (r mysqlRepo) Set(ctx context.Context, id uint32, s model.Subject) error {
+func (r mysqlRepo) Set(ctx context.Context, id uint32, s model.Subject, editData model.CoreSubject) error {
 	tx := r.q.Begin()
 
+	if err := r.set(ctx, tx, id, s); err != nil {
+		return err
+	}
+
+	if err := r.createSubjectRevision(ctx, tx, id, s, editData); err != nil {
+		return err
+	}
+
+	return errgo.Wrap(tx.Commit(), "tx.Commit")
+}
+
+func (r mysqlRepo) set(ctx context.Context, tx *query.QueryTx, id uint32, s model.Subject) error {
 	_, err := tx.Subject.WithContext(ctx).Debug().Where(r.q.Subject.ID.Eq(id)).UpdateSimple(
 		r.q.Subject.Infobox.Value(s.Infobox),
 		r.q.Subject.Name.Value(s.Name),
@@ -80,8 +94,41 @@ func (r mysqlRepo) Set(ctx context.Context, id uint32, s model.Subject) error {
 		r.log.Error("unexpected error happened when updating subject fields", zap.Error(err), zap.Uint32("subject_id", id))
 		return multierr.Append(errgo.Wrap(tx.Rollback(), "tx.Rollback"), errgo.Wrap(err, "update subject table"))
 	}
+	return nil
+}
 
-	return errgo.Wrap(tx.Commit(), "tx.Commit")
+func (r mysqlRepo) createSubjectRevision(
+	ctx context.Context,
+	tx *query.QueryTx,
+	id uint32,
+	s model.Subject,
+	editData model.CoreSubject,
+) error {
+	revision := dao.SubjectRevision{
+		SubjectID:    id,
+		Type:         model.RevisionTypeSubject,
+		TypeID:       s.TypeID,
+		Creator:      editData.CreatorID,
+		Dateline:     int32(time.Now().Unix()),
+		Name:         editData.Name,
+		NameCN:       s.NameCN,
+		FieldEps:     s.Eps,
+		FieldInfobox: editData.Infobox,
+		FieldSummary: editData.Summary,
+		EditSummary:  editData.EditSummary,
+		Platform:     editData.Platform,
+	}
+
+	if err := tx.SubjectRevision.WithContext(ctx).Create(&revision); err != nil {
+		r.log.Error(
+			"unexpected error happened when creating subject revision",
+			zap.Error(err),
+			zap.Uint32("subject_id", id),
+		)
+		return multierr.Append(errgo.Wrap(tx.Rollback(), "tx.Rollback"), errgo.Wrap(err, "create subject revision"))
+	}
+
+	return nil
 }
 
 func ConvertDao(s *dao.Subject) model.Subject {

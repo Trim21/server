@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Sociosarbis <136657577@qq.com>
 // Copyright (c) 2022 Trim21 <trim21.me@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -27,7 +28,7 @@ type SubjectRepo interface {
 	Get(ctx context.Context, id uint32) (model.Subject, error)
 	GetByIDs(ctx context.Context, ids ...model.SubjectIDType) (map[model.SubjectIDType]model.Subject, error)
 
-	Set(ctx context.Context, id uint32, s model.Subject) error
+	Set(ctx context.Context, id uint32, s model.Subject, editData model.CoreSubject) error
 
 	GetPersonRelated(ctx context.Context, personID model.PersonIDType) ([]SubjectPersonRelation, error)
 	GetCharacterRelated(ctx context.Context, characterID model.PersonIDType) ([]SubjectCharacterRelation, error)

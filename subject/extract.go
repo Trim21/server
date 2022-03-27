@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Sociosarbis <136657577@qq.com>
 // Copyright (c) 2022 Trim21 <trim21.me@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -30,6 +31,7 @@ type extractedWikiData struct {
 	Date    time.Time
 	NameCN  string
 	Airtime uint8
+	Eps     uint32
 }
 
 func extractFromWiki(t model.SubjectType, w wiki.Wiki) extractedWikiData {
@@ -51,6 +53,8 @@ func extractFromWiki(t model.SubjectType, w wiki.Wiki) extractedWikiData {
 
 const cnNameKey = "中文名"
 const keyStart = "开始"
+const keyEps = "话数"
+const keyRealEps = "集数"
 
 var datePattern = regexp.MustCompile(`^(\d{4})-(\d{2})-(\d{2})`)
 

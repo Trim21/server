@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Sociosarbis <136657577@qq.com>
 // Copyright (c) 2022 Trim21 <trim21.me@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -49,17 +50,18 @@ func (s service) Update(ctx context.Context, id uint32, subject model.CoreSubjec
 	m := model.Subject{
 		Name:       subject.Name,
 		Summary:    subject.Summary,
+		TypeID:     old.TypeID,
 		PlatformID: subject.Platform,
 		NSFW:       subject.NSFW,
 		Infobox:    subject.Infobox,
+		Eps:        extra.Eps,
 
 		Airtime: extra.Airtime,
 		NameCN:  extra.NameCN,
 		Date:    extra.Date,
 	}
 
-	return errgo.Wrap(s.repo.Set(ctx, id, m), "SubjectRepo.Set")
-	// TODO: append revision
+	return errgo.Wrap(s.repo.Set(ctx, id, m, subject), "SubjectRepo.Set")
 }
 
 func (s service) Get(ctx context.Context, id uint32) (model.Subject, error) {

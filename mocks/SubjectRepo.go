@@ -333,13 +333,13 @@ func (_c *SubjectRepo_GetSubjectRelated_Call) Return(_a0 []domain.SubjectInterna
 	return _c
 }
 
-// Set provides a mock function with given fields: ctx, id, s
-func (_m *SubjectRepo) Set(ctx context.Context, id uint32, s model.Subject) error {
-	ret := _m.Called(ctx, id, s)
+// Set provides a mock function with given fields: ctx, id, s, editData
+func (_m *SubjectRepo) Set(ctx context.Context, id uint32, s model.Subject, editData model.CoreSubject) error {
+	ret := _m.Called(ctx, id, s, editData)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint32, model.Subject) error); ok {
-		r0 = rf(ctx, id, s)
+	if rf, ok := ret.Get(0).(func(context.Context, uint32, model.Subject, model.CoreSubject) error); ok {
+		r0 = rf(ctx, id, s, editData)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -356,13 +356,14 @@ type SubjectRepo_Set_Call struct {
 //  - ctx context.Context
 //  - id uint32
 //  - s model.Subject
-func (_e *SubjectRepo_Expecter) Set(ctx interface{}, id interface{}, s interface{}) *SubjectRepo_Set_Call {
-	return &SubjectRepo_Set_Call{Call: _e.mock.On("Set", ctx, id, s)}
+//  - editData model.CoreSubject
+func (_e *SubjectRepo_Expecter) Set(ctx interface{}, id interface{}, s interface{}, editData interface{}) *SubjectRepo_Set_Call {
+	return &SubjectRepo_Set_Call{Call: _e.mock.On("Set", ctx, id, s, editData)}
 }
 
-func (_c *SubjectRepo_Set_Call) Run(run func(ctx context.Context, id uint32, s model.Subject)) *SubjectRepo_Set_Call {
+func (_c *SubjectRepo_Set_Call) Run(run func(ctx context.Context, id uint32, s model.Subject, editData model.CoreSubject)) *SubjectRepo_Set_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uint32), args[2].(model.Subject))
+		run(args[0].(context.Context), args[1].(uint32), args[2].(model.Subject), args[3].(model.CoreSubject))
 	})
 	return _c
 }

@@ -11,7 +11,7 @@ type SubjectRevision struct {
 	ID           uint32  `gorm:"column:rev_id;type:mediumint(8) unsigned;primaryKey;autoIncrement:true;index:rev_creator,priority:2" json:"rev_id"`
 	Type         uint8   `gorm:"column:rev_type;type:tinyint(3) unsigned;not null;index:rev_type,priority:1;default:1" json:"rev_type"` // 修订类型
 	SubjectID    uint32  `gorm:"column:rev_subject_id;type:mediumint(8) unsigned;not null;index:rev_subject_id,priority:1" json:"rev_subject_id"`
-	TypeID       uint16  `gorm:"column:rev_type_id;type:smallint(6) unsigned;not null;default:0" json:"rev_type_id"`
+	TypeID       uint8   `gorm:"column:rev_type_id;type:smallint(6) unsigned;not null;default:0" json:"rev_type_id"`
 	Creator      uint32  `gorm:"column:rev_creator;type:mediumint(8) unsigned;not null;index:rev_subject_id,priority:2;index:rev_creator,priority:1" json:"rev_creator"`
 	Dateline     int32   `gorm:"column:rev_dateline;type:int(10) unsigned;not null;index:rev_dateline,priority:1;default:0" json:"rev_dateline"`
 	Name         string  `gorm:"column:rev_name;type:varchar(80);not null" json:"rev_name"`

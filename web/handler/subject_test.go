@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Sociosarbis <136657577@qq.com>
 // Copyright (c) 2022 Trim21 <trim21.me@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -166,7 +167,7 @@ func TestHandler_PutSubject(t *testing.T) {
 		Group:   1,
 	}, nil)
 
-	m.EXPECT().Set(mock.Anything, uint32(363612), mock.Anything).Return(nil)
+	m.EXPECT().Set(mock.Anything, uint32(363612), mock.Anything, mock.Anything).Return(nil)
 	m.EXPECT().Get(mock.Anything, uint32(363612)).Return(model.Subject{}, nil)
 	app := test.GetWebApp(t, test.Mock{SubjectRepo: m, AuthRepo: user})
 

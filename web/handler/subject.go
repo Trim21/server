@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Sociosarbis <136657577@qq.com>
 // Copyright (c) 2022 Trim21 <trim21.me@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-only
@@ -118,13 +119,14 @@ func (h Handler) PutSubject(c *fiber.Ctx) error {
 		})
 	}
 
-	return h.putSubject(c, id, body)
+	return h.putSubject(c, id, u.ID, body)
 }
 
-func (h Handler) putSubject(c *fiber.Ctx, id model.SubjectIDType, body req.PutSubject) error {
+func (h Handler) putSubject(c *fiber.Ctx, id model.SubjectIDType, uid model.IDType, body req.PutSubject) error {
 	err := h.s.Update(c.Context(), id, model.CoreSubject{
 		Name:        body.Name,
 		Infobox:     body.Infobox,
+		CreatorID:   uid,
 		Summary:     body.Summary,
 		EditSummary: body.EditSummary,
 		Entry:       body.Entry,

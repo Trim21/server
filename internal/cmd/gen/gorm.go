@@ -219,6 +219,7 @@ func main() {
 		g.GenerateModelAs("chii_subject_revisions", "SubjectRevision",
 			gen.FieldTrimPrefix("rev_"),
 			gen.FieldRename("rev_name_cn", "NameCN"),
+			gen.FieldType("rev_type_id", subjectTypeIDTypeString),
 			gen.FieldRelate(field.BelongsTo, "Subject", modelSubject, &field.RelateConfig{
 				GORMTag: "foreignKey:rev_subject_id;references:subject_id",
 			}),
