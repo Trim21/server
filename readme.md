@@ -2,6 +2,7 @@
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Bangumi/server?style=flat-square)
 [![Codecov](https://img.shields.io/codecov/c/github/Bangumi/server?style=flat-square)](https://app.codecov.io/gh/Bangumi/server)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FTrim21%2Fserver.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FTrim21%2Fserver?ref=badge_shield)
 
 ## Requirements
 
@@ -108,3 +109,6 @@ task lint
 Copyright (C) 2021-2022 bangumi server contributors.
 
 Source is licensed under the GNU AGPLv3 license that can be found in the [LICENSE.txt](https://github.com/bangumi/server/blob/master/LICENSE.txt) file.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FTrim21%2Fserver.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FTrim21%2Fserver?ref=badge_large)
