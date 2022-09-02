@@ -29,6 +29,9 @@ jobs:
         with:
           ref: "refs/pull/${{ github.event.number }}/head"
 
+      - run: "gh pr checkout ${{ github.event.number }}"
+        if: ${{ github.event_name != 'push' }}
+
       - name: Checkout code
         uses: actions/checkout@v3
         if: ${{ github.event_name == 'push' }}
