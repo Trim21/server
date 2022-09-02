@@ -49,6 +49,8 @@ jobs:
       - name: create review
         if: ${{ failure() && github.event_name != 'push' }}
         run: |
+          git config --global user.email "bot@users.noreply.github.com"
+          git config --global user.name "github actions"
           git add .
           git commit -m 'ci auto format code'
           git push
