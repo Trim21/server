@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v3
         if: ${{ github.event_name != 'push' }}
         with:
-          ref: "refs/pull/${{ github.event.number }}/merge"
+          ref: "${{ github.event.pull_request.head.sha }}"
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -49,11 +49,11 @@ jobs:
       - name: create review
         if: ${{ failure() && github.event_name != 'push' }}
         run: |
-          TMPFILE=$(mktemp)
-          content=$(git diff --name-only|sort|head -n |xargs git diff --)
-          echo "${content}" >"${TMPFILE}"
-          git reset --hard HEAD
+          git config --global user.email "bot@users.noreply.github.com"
+          git config --global user.name "github actions"
+          git add .
+          git commit -m 'style: ci auto format code'
+          git push
 
-          reviewdog -f=diff -f.diff.strip=1 -reporter=github-pr-review -tee < "${TMPFILE}"
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        env:
+#          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
