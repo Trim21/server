@@ -1,8 +1,8 @@
 {
   "name": "chii",
   "version": "0.25.7",
-  "description":  "tools to bundle openapi spec, not used in our server",
-  "private": true,
+  "description":  "scripts to bundle openapi spec, not used in our server",
+  "private":  true,
   "scripts": {
     "format": "prettier -w --list-different ./",
     "test": "node openapi/test.js",
