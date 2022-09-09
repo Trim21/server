@@ -99,7 +99,7 @@ func (c redisCache) GetMany(ctx context.Context, keys []string) GetManyResult {
 	values, err := rr.Result()
 
 	if err != nil {
-		return GetManyResult{Err: errgo.Wrap(err, "redis set"), cache: c}
+		return GetManyResult{Err: errgo.Wrap(err, "redis set")}
 	}
 
 	var result = make(map[string][]byte, len(keys))
@@ -114,8 +114,7 @@ func (c redisCache) GetMany(ctx context.Context, keys []string) GetManyResult {
 			result[keys[i]] = []byte(v)
 		default:
 			return GetManyResult{
-				Err:   fmt.Errorf("BUG: unexpected redis response type %T %+v", value, value), //nolint:goerr113
-				cache: c,
+				Err: fmt.Errorf("BUG: unexpected redis response type %T %+v", value, value), //nolint:goerr113
 			}
 		}
 	}
