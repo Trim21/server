@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/goccy/go-json"
 	"go.uber.org/zap"
 
 	"github.com/bangumi/server/internal/pkg/errgo"
@@ -65,7 +64,7 @@ func (c redisCache) Get(ctx context.Context, key string, value any) (bool, error
 		return false, errgo.Wrap(err, "redis get")
 	}
 
-	err = json.Unmarshal(raw, value)
+	err = unmarshalBytes(raw, value)
 	if err != nil {
 		logger.Warn("can't unmarshal redis cached data as json", zap.String("key", key))
 		c.r.Del(ctx, key)
@@ -77,7 +76,7 @@ func (c redisCache) Get(ctx context.Context, key string, value any) (bool, error
 }
 
 func (c redisCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
-	b, err := json.MarshalWithOption(value, json.DisableHTMLEscape())
+	b, err := marshalBytes(value)
 	if err != nil {
 		return errgo.Wrap(err, "json")
 	}
@@ -129,7 +128,7 @@ func (c redisCache) SetMany(ctx context.Context, data map[string]any, ttl time.D
 	args = append(args, int64(ttl.Seconds()))
 
 	for key, value := range data {
-		b, err := json.MarshalWithOption(value, json.DisableHTMLEscape())
+		b, err := marshalBytes(value)
 		if err != nil {
 			return errgo.Wrap(err, "json")
 		}
@@ -154,7 +153,7 @@ func Unmarshal[T any, ID comparable, F func(t T) ID](result GetManyResult, fn F)
 
 	for _, bytes := range result.Result {
 		var t T
-		err := json.UnmarshalNoEscape(bytes, &t)
+		err := unmarshalBytes(bytes, &t)
 		if err != nil {
 			return nil, errgo.Wrap(err, "json.Unmarshal")
 		}
