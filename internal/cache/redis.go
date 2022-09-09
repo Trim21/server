@@ -29,9 +29,9 @@ import (
 )
 
 //go:embed mset.lua
-var msetLua string
+var setManyLua string
 
-var msetScript = redis.NewScript(msetLua) //nolint:gochecknoglobals
+var setManyScript = redis.NewScript(setManyLua) //nolint:gochecknoglobals
 
 type GetManyResult struct {
 	Result map[string][]byte
@@ -138,7 +138,7 @@ func (c redisCache) SetMany(ctx context.Context, data map[string]any, ttl time.D
 		args = append(args, b)
 	}
 
-	if err := msetScript.Run(ctx, c.r, keys, args...).Err(); err != nil {
+	if err := setManyScript.Run(ctx, c.r, keys, args...).Err(); err != nil {
 		return errgo.Wrap(err, "redis set")
 	}
 
