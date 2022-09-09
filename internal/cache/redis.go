@@ -16,6 +16,8 @@ package cache
 
 import (
 	"context"
+	_ "embed"
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -26,11 +28,22 @@ import (
 	"github.com/bangumi/server/internal/pkg/logger"
 )
 
+//go:embed mset.lua
+var msetLua string
+
+var msetScript = redis.NewScript(msetLua) //nolint:gochecknoglobals
+
+type GetManyResult struct {
+	Result map[string][]byte
+	Err    error
+}
+
 type RedisCache interface {
 	Get(ctx context.Context, key string, value any) (bool, error)
 	Set(ctx context.Context, key string, value any, ttl time.Duration) error
 	Del(ctx context.Context, keys ...string) error
-	// SetMany(ctx context.Context, keys string, values []any, ttl time.Duration) error
+	SetMany(ctx context.Context, data map[string]any, ttl time.Duration) error
+	GetMany(ctx context.Context, keys []string) GetManyResult
 }
 
 // NewRedisCache create a redis backed cache.
@@ -79,4 +92,75 @@ func (c redisCache) Set(ctx context.Context, key string, value any, ttl time.Dur
 func (c redisCache) Del(ctx context.Context, keys ...string) error {
 	err := c.r.Del(ctx, keys...).Err()
 	return errgo.Wrap(err, "redis.Del")
+}
+
+func (c redisCache) GetMany(ctx context.Context, keys []string) GetManyResult {
+	rr := c.r.MGet(ctx, keys...)
+	values, err := rr.Result()
+
+	if err != nil {
+		return GetManyResult{Err: errgo.Wrap(err, "redis set")}
+	}
+
+	var result = make(map[string][]byte, len(keys))
+
+	for i, value := range values {
+		if value == nil {
+			continue
+		}
+
+		switch v := value.(type) {
+		case string:
+			result[keys[i]] = []byte(v)
+		default:
+			return GetManyResult{
+				Err: fmt.Errorf("BUG: unexpected redis response type %T %+v", value, value), //nolint:goerr113
+			}
+		}
+	}
+
+	return GetManyResult{Result: result}
+}
+
+func (c redisCache) SetMany(ctx context.Context, data map[string]any, ttl time.Duration) error {
+	var keys = make([]string, 0, len(data))
+	var args = make([]any, 0, len(data)+1)
+
+	args = append(args, int64(ttl.Seconds()))
+
+	for key, value := range data {
+		b, err := json.MarshalWithOption(value, json.DisableHTMLEscape())
+		if err != nil {
+			return errgo.Wrap(err, "json")
+		}
+
+		keys = append(keys, key)
+		args = append(args, b)
+	}
+
+	if err := msetScript.Run(ctx, c.r, keys, args...).Err(); err != nil {
+		return errgo.Wrap(err, "redis set")
+	}
+
+	return nil
+}
+
+func Unmarshal[T any, ID comparable, F func(t T) ID](result GetManyResult, fn F) (map[ID]T, error) {
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	var out = make(map[ID]T, len(result.Result))
+
+	for _, bytes := range result.Result {
+		var t T
+		err := json.UnmarshalNoEscape(bytes, &t)
+		if err != nil {
+			return nil, errgo.Wrap(err, "json.Unmarshal")
+		}
+
+		out[fn(t)] = t
+	}
+
+	return out, nil
 }
