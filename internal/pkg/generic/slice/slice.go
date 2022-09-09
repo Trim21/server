@@ -23,17 +23,6 @@ func Map[T any, K any, F func(item T) K](in []T, fn F) []K {
 	return s
 }
 
-func Filter[T any, F func(item T) bool](s []T, keep F) []T {
-	var out = make([]T, 0, len(s))
-	for _, v := range s {
-		if keep(v) {
-			out = append(out, v)
-		}
-	}
-
-	return out
-}
-
 func MapFilter[T any, K any, F func(item T) (k K, ok bool)](in []T, fn F) []K {
 	var s = make([]K, 0, len(in))
 	for _, t := range in {
