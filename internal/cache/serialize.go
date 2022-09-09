@@ -16,12 +16,24 @@ package cache
 
 import (
 	"github.com/goccy/go-json"
+
+	"github.com/bangumi/server/internal/pkg/errgo"
 )
 
 func marshalBytes(v any) ([]byte, error) {
-	return json.MarshalWithOption(v, json.DisableHTMLEscape())
+	b, err := json.MarshalWithOption(v, json.DisableHTMLEscape())
+	if err != nil {
+		return nil, errgo.Wrap(err, "json.Marshal")
+	}
+
+	return b, nil
 }
 
 func unmarshalBytes(b []byte, v any) error {
-	return json.UnmarshalNoEscape(b, v)
+	err := json.UnmarshalNoEscape(b, v)
+	if err != nil {
+		return errgo.Wrap(err, "json.Unmarshal")
+	}
+
+	return nil
 }

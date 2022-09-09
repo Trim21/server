@@ -78,7 +78,7 @@ func (c redisCache) Get(ctx context.Context, key string, value any) (bool, error
 func (c redisCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	b, err := marshalBytes(value)
 	if err != nil {
-		return errgo.Wrap(err, "json")
+		return err
 	}
 
 	if err := c.r.Set(ctx, key, b, ttl).Err(); err != nil {
@@ -130,7 +130,7 @@ func (c redisCache) SetMany(ctx context.Context, data map[string]any, ttl time.D
 	for key, value := range data {
 		b, err := marshalBytes(value)
 		if err != nil {
-			return errgo.Wrap(err, "json")
+			return err
 		}
 
 		keys = append(keys, key)
@@ -155,7 +155,7 @@ func Unmarshal[T any, ID comparable, F func(t T) ID](result GetManyResult, fn F)
 		var t T
 		err := unmarshalBytes(bytes, &t)
 		if err != nil {
-			return nil, errgo.Wrap(err, "json.Unmarshal")
+			return nil, err
 		}
 
 		out[fn(t)] = t
