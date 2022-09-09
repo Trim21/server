@@ -33,6 +33,7 @@ var setManyLua string
 var setManyScript = redis.NewScript(setManyLua) //nolint:gochecknoglobals
 
 type GetManyResult struct {
+	cache  redisCache
 	Result map[string][]byte
 	Err    error
 }
@@ -98,7 +99,7 @@ func (c redisCache) GetMany(ctx context.Context, keys []string) GetManyResult {
 	values, err := rr.Result()
 
 	if err != nil {
-		return GetManyResult{Err: errgo.Wrap(err, "redis set")}
+		return GetManyResult{Err: errgo.Wrap(err, "redis set"), cache: c}
 	}
 
 	var result = make(map[string][]byte, len(keys))
@@ -113,12 +114,13 @@ func (c redisCache) GetMany(ctx context.Context, keys []string) GetManyResult {
 			result[keys[i]] = []byte(v)
 		default:
 			return GetManyResult{
-				Err: fmt.Errorf("BUG: unexpected redis response type %T %+v", value, value), //nolint:goerr113
+				Err:   fmt.Errorf("BUG: unexpected redis response type %T %+v", value, value), //nolint:goerr113
+				cache: c,
 			}
 		}
 	}
 
-	return GetManyResult{Result: result}
+	return GetManyResult{Result: result, cache: c}
 }
 
 func (c redisCache) SetMany(ctx context.Context, data map[string]any, ttl time.Duration) error {
@@ -151,14 +153,26 @@ func Unmarshal[T any, ID comparable, F func(t T) ID](result GetManyResult, fn F)
 
 	var out = make(map[ID]T, len(result.Result))
 
-	for _, bytes := range result.Result {
+	var badKeys = make([]string, 0, len(result.Result))
+
+	for key, bytes := range result.Result {
 		var t T
 		err := unmarshalBytes(bytes, &t)
 		if err != nil {
-			return nil, err
+			badKeys = append(badKeys, key)
+			continue
 		}
 
 		out[fn(t)] = t
+	}
+
+	if len(badKeys) != 0 {
+		go func() {
+			err := result.cache.Del(context.Background(), badKeys...)
+			if err != nil {
+				logger.Error("failed to delete bad cache from redis in the background", zap.Error(err))
+			}
+		}()
 	}
 
 	return out, nil
