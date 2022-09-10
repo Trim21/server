@@ -180,6 +180,7 @@ func UnmarshalMany[T any, ID comparable, F func(t T) ID](result GetManyResult, f
 		var t T
 		err := unmarshalBytes(bytes, &t)
 		if err != nil {
+			logger.Warn("bad cached bytes", zap.String("key", key), zap.ByteString("value", bytes))
 			badKeys = append(badKeys, key)
 			continue
 		}
