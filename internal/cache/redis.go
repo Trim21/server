@@ -33,7 +33,7 @@ var setManyLua string
 var setManyScript = redis.NewScript(setManyLua) //nolint:gochecknoglobals
 
 type GetManyResult struct {
-	cache  redisCache
+	cache  RedisCache
 	Result map[string][]byte
 	Err    error
 }
@@ -175,7 +175,7 @@ func UnmarshalMany[T any, ID comparable, F func(t T) ID](result GetManyResult, f
 		out[fn(t)] = t
 	}
 
-	if len(badKeys) != 0 {
+	if len(badKeys) != 0 && (result.cache != nil) {
 		go func() {
 			err := result.cache.Del(context.Background(), badKeys...)
 			if err != nil {
