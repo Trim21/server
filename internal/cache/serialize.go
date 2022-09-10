@@ -21,7 +21,7 @@ import (
 )
 
 func marshalBytes(v any) ([]byte, error) {
-	b, err := json.MarshalWithOption(v, json.DisableHTMLEscape())
+	b, err := json.MarshalWithOption(v, json.DisableHTMLEscape(), json.DisableNormalizeUTF8())
 	if err != nil {
 		return nil, errgo.Wrap(err, "json.Marshal")
 	}
