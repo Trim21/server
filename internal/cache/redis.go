@@ -42,7 +42,15 @@ type RedisCache interface {
 	Get(ctx context.Context, key string, value any) (bool, error)
 	Set(ctx context.Context, key string, value any, ttl time.Duration) error
 	Del(ctx context.Context, keys ...string) error
+
+	// SetMany
+	//
+	//   err := SetMany(ctx, cache.MarshalMany(notCachedSubjects, cachekey.Subject), time.Minute)
 	SetMany(ctx context.Context, data map[string]any, ttl time.Duration) error
+	// GetMany
+	//
+	//		b := ctl.cache.GetMany(ctx, slice.Map(subjectIDs, cachekey.Subject))
+	//		result, err := cache.UnmarshalMany(b, model.Subject.GetID)
 	GetMany(ctx context.Context, keys []string) GetManyResult
 }
 
