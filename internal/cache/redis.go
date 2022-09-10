@@ -51,6 +51,7 @@ type RedisCache interface {
 	//
 	//   err := SetMany(ctx, cache.MarshalMany(notCachedSubjects, cachekey.Subject), time.Minute)
 	SetMany(ctx context.Context, data map[string]any, ttl time.Duration) error
+
 	// GetMany
 	//
 	//   b := ctl.cache.GetMany(ctx, slice.Map(subjectIDs, cachekey.Subject))
