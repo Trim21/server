@@ -95,15 +95,12 @@ func (c redisCache) Del(ctx context.Context, keys ...string) error {
 }
 
 func (c redisCache) GetMany(ctx context.Context, keys []string) GetManyResult {
-	rr := c.r.MGet(ctx, keys...)
-	values, err := rr.Result()
-
+	values, err := c.r.MGet(ctx, keys...).Result()
 	if err != nil {
 		return GetManyResult{Err: errgo.Wrap(err, "redis set")}
 	}
 
 	var result = make(map[string][]byte, len(keys))
-
 	for i, value := range values {
 		if value == nil {
 			continue
@@ -123,8 +120,8 @@ func (c redisCache) GetMany(ctx context.Context, keys []string) GetManyResult {
 }
 
 func (c redisCache) SetMany(ctx context.Context, data map[string]any, ttl time.Duration) error {
-	var keys = make([]string, 0, len(data))
-	var args = make([]any, 0, len(data)+1)
+	var keys = make([]string, 0, len(data)) // [     key1,   key2,   key3,   ...]
+	var args = make([]any, 0, len(data)+1)  // [ttl, bytes1, bytes2, bytes3, ...]
 
 	args = append(args, int64(ttl.Seconds()))
 
