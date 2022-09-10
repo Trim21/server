@@ -183,7 +183,7 @@ func TestRedisCache_GetMany(t *testing.T) {
 	require.NoError(t, result.Err)
 
 	var unmarshalled map[int]RedisCacheTestItem
-	unmarshalled, err := cache.Unmarshal(result, func(i RedisCacheTestItem) int { return i.I })
+	unmarshalled, err := cache.UnmarshalMany(result, func(i RedisCacheTestItem) int { return i.I })
 	require.NoError(t, err)
 	require.Contains(t, unmarshalled, 1)
 	require.Contains(t, unmarshalled, 2)

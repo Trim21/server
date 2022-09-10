@@ -77,7 +77,7 @@ func (ctl Ctrl) GetSubjectByIDs(
 	subjectIDs []model.SubjectID,
 	filter SubjectFilter,
 ) (map[model.SubjectID]model.Subject, error) {
-	result, err := cache.Unmarshal(ctl.cache.GetMany(ctx, slice.Map(subjectIDs, cachekey.Subject)), model.Subject.GetID)
+	result, err := cache.UnmarshalMany(ctl.cache.GetMany(ctx, slice.Map(subjectIDs, cachekey.Subject)), model.Subject.GetID)
 	if err != nil {
 		return nil, errgo.Wrap(err, "cache.GetMany")
 	}
@@ -94,11 +94,7 @@ func (ctl Ctrl) GetSubjectByIDs(
 		return nil, errgo.Wrap(err, "failed to get subjects")
 	}
 
-	var toCached = gmap.Map(notCachedSubjects, func(k model.SubjectID, v model.Subject) (string, any) {
-		return cachekey.Subject(k), v
-	})
-
-	if err := ctl.cache.SetMany(ctx, toCached, time.Minute); err != nil {
+	if err := ctl.cache.SetMany(ctx, cache.MarshalMany(notCachedSubjects, cachekey.Subject), time.Minute); err != nil {
 		ctl.log.Error("cache.SetMany", zap.Error(err))
 	}
 

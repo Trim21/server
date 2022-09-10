@@ -64,7 +64,7 @@ func (ctl Ctrl) GetUser(ctx context.Context, userID model.UserID) (model.User, e
 }
 
 func (ctl Ctrl) GetUsersByIDs(ctx context.Context, userIDs []model.UserID) (map[model.UserID]model.User, error) {
-	result, err := cache.Unmarshal(ctl.cache.GetMany(ctx, slice.Map(userIDs, cachekey.User)), model.User.GetID)
+	result, err := cache.UnmarshalMany(ctl.cache.GetMany(ctx, slice.Map(userIDs, cachekey.User)), model.User.GetID)
 	if err != nil {
 		return nil, errgo.Wrap(err, "cache.GetMany")
 	}
@@ -76,11 +76,7 @@ func (ctl Ctrl) GetUsersByIDs(ctx context.Context, userIDs []model.UserID) (map[
 		return nil, errgo.Wrap(err, "failed to get subjects")
 	}
 
-	var toCached = gmap.Map(unCachedUsers, func(k model.UserID, v model.User) (string, any) {
-		return cachekey.User(k), v
-	})
-
-	if err := ctl.cache.SetMany(ctx, toCached, time.Minute); err != nil {
+	if err := ctl.cache.SetMany(ctx, cache.MarshalMany(unCachedUsers, cachekey.User), time.Minute); err != nil {
 		ctl.log.Error("cache.SetMany", zap.Error(err))
 	}
 

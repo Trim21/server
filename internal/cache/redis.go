@@ -145,7 +145,17 @@ func (c redisCache) SetMany(ctx context.Context, data map[string]any, ttl time.D
 	return nil
 }
 
-func Unmarshal[T any, ID comparable, F func(t T) ID](result GetManyResult, fn F) (map[ID]T, error) {
+func MarshalMany[M ~map[K]V, K comparable, V any, F func(t K) string](data M, fn F) map[string]any {
+	var out = make(map[string]any, len(data))
+
+	for key, value := range data {
+		out[fn(key)] = value
+	}
+
+	return out
+}
+
+func UnmarshalMany[T any, ID comparable, F func(t T) ID](result GetManyResult, fn F) (map[ID]T, error) {
 	if result.Err != nil {
 		return nil, result.Err
 	}
