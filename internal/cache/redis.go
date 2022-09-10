@@ -51,7 +51,8 @@ type GetManyResult struct {
 // GetMany...
 //
 //	result := c.GetMany(ctx, slice.Map(subjectIDs, cachekey.Subject))
-//	result, err := cache.UnmarshalMany(result, model.Subject.GetID)
+//	var cached map[model.SubjectID]model.Subject
+//	cached, err = cache.UnmarshalMany(result, model.Subject.GetID)
 type RedisCache interface {
 	Get(ctx context.Context, key string, value any) (bool, error)
 	Set(ctx context.Context, key string, value any, ttl time.Duration) error
