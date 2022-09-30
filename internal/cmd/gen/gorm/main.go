@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>
 
+//go:build codegen
+
 /*
 scripts to generate ORM struct from mysql server
 
@@ -285,6 +287,14 @@ func main() {
 		}),
 	)
 	g.ApplyBasic(modelSubject)
+
+	g.ApplyBasic(g.GenerateModelAs("chii_ep_revisions", "EpRevision",
+		gen.FieldTrimPrefix("rev_"),
+		gen.FieldTrimPrefix("ep_rev_"),
+		gen.FieldType("rev_sid", subjectIDTypeString),
+		gen.FieldRename("rev_dateline", createdTime),
+		gen.FieldRename("rev_creator", "CreatorID"),
+	))
 
 	g.ApplyBasic(g.GenerateModelAs("chii_episodes", "Episode",
 		// gen.FieldTrimPrefix("field_"),

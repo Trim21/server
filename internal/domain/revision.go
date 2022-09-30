@@ -44,4 +44,8 @@ type RevisionRepo interface {
 	) ([]model.CharacterRevision, error)
 
 	GetCharacterRelated(ctx context.Context, id model.RevisionID) (model.CharacterRevision, error)
+
+	ListEpisodeRelated(
+		ctx context.Context, episodeID model.EpisodeID, limit int, offset int,
+	) ([]model.EpisodeRevision, error)
 }

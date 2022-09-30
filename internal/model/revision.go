@@ -88,3 +88,9 @@ type CharacterRevisionDataItem struct {
 	Summary string `json:"summary"`
 	Extra   Extra  `json:"extra"`
 }
+
+// EpisodeRevision concrete revision data type.
+type EpisodeRevision struct {
+	Data CharacterRevisionData
+	RevisionCommon
+}

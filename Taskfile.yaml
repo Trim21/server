@@ -127,7 +127,7 @@ tasks:
       - ./internal/cmd/gen/gorm/main.go
       - go.mod
     cmds:
-      - go run ./internal/cmd/gen/gorm/main.go
+      - go run --tags codegen ./internal/cmd/gen/gorm/main.go
 
   clean:
     cmds:

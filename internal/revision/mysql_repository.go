@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"regexp"
 	"time"
 
 	"github.com/elliotchance/phpserialize"
@@ -36,13 +37,31 @@ import (
 	"github.com/bangumi/server/internal/pkg/errgo"
 )
 
+func NewMysqlRepo(q *query.Query, log *zap.Logger) (domain.RevisionRepo, error) {
+	return mysqlRepo{q: q, log: log.Named("revision.mysqlRepo")}, nil
+}
+
 type mysqlRepo struct {
 	q   *query.Query
 	log *zap.Logger
 }
 
-func NewMysqlRepo(q *query.Query, log *zap.Logger) (domain.RevisionRepo, error) {
-	return mysqlRepo{q: q, log: log.Named("revision.mysqlRepo")}, nil
+const multipleEpisodePatternFormat = `(^|,)%s($|,)`
+
+var _ = regexp.MustCompile(multipleEpisodePatternFormat)
+
+func (r mysqlRepo) ListEpisodeRelated(
+	ctx context.Context, episodeID model.EpisodeID, limit int, offset int) ([]model.EpisodeRevision, error) {
+	multipleEpisodeEdit, err := r.q.EpRevision.WithContext(ctx).Where(r.q.EpRevision.Eids.Regexp(multipleEpisodePatternFormat)).Find()
+	if err != nil {
+		return nil, errgo.Wrap(err, "search in multi edit")
+	}
+
+	r.q.RevisionHistory.WithContext(ctx).
+		Where(r.q.RevisionHistory.Mid.Eq(uint32(episodeID)), r.q.RevisionHistory.Type.Eq(model.RevisionTypeEp))
+
+	// TODO implement me
+	panic("implement me")
 }
 
 func (r mysqlRepo) CountPersonRelated(ctx context.Context, personID model.PersonID) (int64, error) {

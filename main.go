@@ -28,6 +28,7 @@ import (
 	"github.com/bangumi/server/internal/config"
 	"github.com/bangumi/server/internal/ctrl"
 	"github.com/bangumi/server/internal/dal"
+	"github.com/bangumi/server/internal/dal/query"
 	"github.com/bangumi/server/internal/dam"
 	"github.com/bangumi/server/internal/driver"
 	"github.com/bangumi/server/internal/episode"
@@ -72,7 +73,9 @@ func start() error {
 			},
 		),
 
-		dal.Module,
+		dal.NewDB,
+		query.Use,
+		dal.NewMysqlTransaction,
 
 		fx.Provide(
 			logger.Copy, metrics.NewScope, cache.NewRedisCache,
